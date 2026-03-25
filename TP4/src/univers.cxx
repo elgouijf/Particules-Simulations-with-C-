@@ -1,24 +1,46 @@
 #include "../include/univers.hxx"
 #include <cmath>
+
+/**
+ * @brief Construit un univers par défaut.
+ *
+ * Initialise un univers tridimensionnel avec :
+ * - un domaine cubique de taille 10 dans chaque direction,
+ * - une distance de coupure égale à 2.5,
+ * - des paramètres de Lennard-Jones par défaut.
+ *
+ * La grille de cellules est ensuite initialisée.
+ */
 univers::univers(){
-     // vecteur vide
     this->num_particules = 0;
-    //this->particules = std::vector<particule*>(); c'est déjà vide
-    this->dim = 3; // exemple de dimension
+    this->dim = 3;
     this->Lds = std::vector<double>(this->dim, 10.0);
-    this->r_cut = 2.5; // exemple de distance de coupure
-    this->ncd = std::vector<int>(this->dim); // exemple de nombre de cellules par dimension
+    this->r_cut = 2.5;
+    this->ncd = std::vector<int>(this->dim);
     this->eps = 1.0;
     this->sigma = 1.0;
+
     for (int i = 0; i < this->dim; ++i) {
         this->ncd[i] = static_cast<int>(this->Lds[i] / this->r_cut);
-        if (this->ncd[i] < 1) this->ncd[i] = 1; // au moins une cellule par dimension
+        if (this->ncd[i] < 1) this->ncd[i] = 1;
     }
 
     initialise_cellules();
-
 }
 
+/**
+ * @brief Construit un univers paramétré.
+ *
+ * Initialise les paramètres physiques et géométriques de l'univers,
+ * construit la grille de cellules, puis y ajoute les particules fournies.
+ *
+ * @param v Vecteur initial de particules.
+ * @param Lds Tailles du domaine selon chaque direction.
+ * @param r_cut Distance de coupure des interactions.
+ * @param dim Dimension de l'univers.
+ * @param eps Paramètre epsilon du potentiel de Lennard-Jones.
+ * @param sigma Paramètre sigma du potentiel de Lennard-Jones.
+ */
 univers::univers(std::vector<particule*>& v,
     std::vector<double> Lds,
     double r_cut,
@@ -60,13 +82,15 @@ univers::univers(std::vector<particule*>& v,
     }
 }
 
+/**
+ * @brief Détruit l'univers et libère la mémoire des particules.
+ */
 univers::~univers() {
     for (particule* p : particules) {
         delete p;
     }
     particules.clear();
 }
-
 
 const std::vector<particule*>& univers::getParticules() const {
     return particules;
@@ -100,7 +124,14 @@ std::vector<cellule>& univers::getCellules() {
     return cellules;
 }
 
-
+/**
+ * @brief Ajoute une particule à l'univers en respectant sa dimension effective.
+ *
+ * Pour un univers 1D ou 2D, les composantes inutiles de position, vitesse et force
+ * sont annulées avant insertion. La particule est ensuite ajoutée à la bonne cellule.
+ *
+ * @param p Particule à ajouter.
+ */
 void univers::ajoute_particule(particule* p) {
     vecteur pos = p->getPosition();
     vecteur vit = p->getVitesse();
@@ -110,7 +141,6 @@ void univers::ajoute_particule(particule* p) {
         pos.setY(0.0); pos.setZ(0.0);
         vit.setY(0.0); vit.setZ(0.0);
         frc.setY(0.0); frc.setZ(0.0);
-
     } 
     else if (dim == 2) {
         pos.setZ(0.0); vit.setZ(0.0); frc.setZ(0.0);
@@ -126,10 +156,22 @@ void univers::ajoute_particule(particule* p) {
     place_particule_dans_cellule(p);
 }
 
+/**
+ * @brief Fait évoluer l'ensemble des particules sur un pas de temps avec Störmer-Verlet.
+ *
+ * L'évolution se fait en quatre étapes :
+ * 1. mise à jour des positions avec les forces actuelles,
+ * 2. remise à jour de la grille de cellules,
+ * 3. recalcul des forces,
+ * 4. mise à jour des vitesses.
+ *
+ * @param dt Pas de temps.
+ */
 void univers::evolue_particules(double dt) {
     for (particule* p : particules) {
         p->avance_position_verlet(dt);
     }
+
     place_particules_dans_cellules();
     calcule_forces();
 
@@ -138,12 +180,26 @@ void univers::evolue_particules(double dt) {
     }
 }
 
+/**
+ * @brief Vide toutes les cellules de la grille.
+ *
+ * Utilisé avant de replacer les particules dans les cellules correspondant
+ * à leurs nouvelles positions.
+ */
 void univers::vide_cellules() {
     for (cellule& c : cellules) {
         c.vide();
     }
 }
 
+/**
+ * @brief Place une particule dans la cellule correspondant à sa position.
+ *
+ * Les indices sont bornés aux limites de la grille afin d'éviter tout
+ * débordement dans le tableau des cellules.
+ *
+ * @param p Particule à placer.
+ */
 void univers::place_particule_dans_cellule(particule* p) {
     const vecteur& pos = p->getPosition();
 
@@ -170,6 +226,12 @@ void univers::place_particule_dans_cellule(particule* p) {
     cellules[idx].ajoute_particule(p);
 }
 
+/**
+ * @brief Replace toutes les particules dans la grille de cellules.
+ *
+ * Toutes les cellules sont d'abord vidées, puis chaque particule
+ * est replacée à partir de sa position actuelle.
+ */
 void univers::place_particules_dans_cellules() {
     vide_cellules();
 
@@ -178,8 +240,17 @@ void univers::place_particules_dans_cellules() {
     }
 }
 
-
-
+/**
+ * @brief Convertit des indices de cellule en indice linéaire dans le tableau.
+ *
+ * Cette fonction permet de stocker une grille 1D, 2D ou 3D
+ * dans un vecteur linéaire unique.
+ *
+ * @param ix Indice selon x.
+ * @param iy Indice selon y.
+ * @param iz Indice selon z.
+ * @return Indice de la cellule dans le vecteur cellules.
+ */
 int univers::indice_cellule(int ix, int iy, int iz) const {
     if (dim == 1) {
         return ix;
@@ -190,6 +261,13 @@ int univers::indice_cellule(int ix, int iy, int iz) const {
     return ix + ncd[0] * (iy + ncd[1] * iz);
 }
 
+/**
+ * @brief Initialise la grille de cellules et les relations de voisinage.
+ *
+ * Chaque cellule reçoit la liste de ses voisines immédiates.
+ * Cela permet ensuite de limiter le calcul des interactions
+ * aux particules proches dans l'espace.
+ */
 void univers::initialise_cellules() {
     int nb_total = 1;
     for (int d = 0; d < dim; ++d) {
@@ -202,7 +280,7 @@ void univers::initialise_cellules() {
     }
 
     cellules.clear();
-    cellules.resize(nb_total); // on créer les cellules vides
+    cellules.resize(nb_total);
 
     for (cellule& c : cellules) {
         c.getVoisins().reserve(nb_voisins_max);
@@ -271,42 +349,44 @@ void univers::initialise_cellules() {
     }
 }
 
-
-
-
+/**
+ * @brief Calcule les forces de Lennard-Jones sur toutes les particules.
+ *
+ * Cette implémentation exploite la décomposition spatiale en cellules afin de
+ * limiter le calcul aux paires de particules potentiellement proches.
+ *
+ * Optimisations utilisées :
+ * - calcul uniquement avec des distances au carré,
+ * - absence de sqrt et de pow,
+ * - calcul direct sur les composantes dx, dy, dz,
+ * - application du principe action-réaction.
+ *
+ * Les interactions sont tronquées à la distance de coupure r_cut.
+ *
+ * La force utilisée correspond à une interaction de type Lennard-Jones.
+ */
 void univers::calcule_forces(){
-    /* Version optimisée : 
-        - on ne calcule que des carrés
-        - pas de pow ni sqrt
-        - pas de vecteurs inutiles, mais usage de dx, dy et dz
-        - pas de projections */
-    //  Remise à zéro de toutes les forces
+    // Remise à zéro des forces
     for (particule* p : particules) {
         p->setForce(vecteur());
     }
-
-    // Placer les particules dans les cellules
-    //place_particules_dans_cellules(); pas la peine car evolue met chcune des particules dans leurs bonnes endroits
 
     const double r_cut2 = r_cut * r_cut;
     const double sigma2 = sigma * sigma;
     const double coeff = 24.0 * this->eps;
 
-    //  Calculer les forces en utilisant les cellules
+    // Parcours des cellules
     for (const cellule& c : this->cellules) {
         const auto& parts = c.getParticules();
 
         for (const cellule* v : c.getVoisins()){
-            // il n' ya que les voisins qui peuvent etre soumises à l'effet des particules de cette cellule
+            // Évite de traiter deux fois la même paire de cellules
             if (v < &c){
-                // cellule déjà rencontré (car on parcour par ordre croissant de ponteurs)
                 continue;
             }
 
             if (v == &c){
-                // meme cellule, il faut calculer les interactions à l'intérieur
-                // on a besoin de vérifier si dist < r_cut, car la taille de la cellule est rcut dans chaque direction, donc la diag par exemple peut etre trop grande
-                
+                // Interactions internes à une même cellule
                 for (size_t i = 0; i < parts.size(); ++i) {
                     for (size_t j = i + 1; j < parts.size(); ++j) {
 
@@ -326,9 +406,7 @@ void univers::calcule_forces(){
 
                         double sr2 = sigma2 / dist2;
                         double sr6 = sr2 * sr2 * sr2;
-                        double sr12 = sr6 * sr6;
 
-                        //double coeff_force = coeff * (2.0 * sr12 - sr6) / dist2;
                         double coeff_force = coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
 
                         pi->ajouterForce(dx * coeff_force, dy * coeff_force, dz * coeff_force);
@@ -337,15 +415,15 @@ void univers::calcule_forces(){
                 }
             }
             else {
-                // Ici pas besoin de faire un parcours par idx, car les cellules sont différents don con aura jamais pi = pj
+                // Interactions entre deux cellules voisines distinctes
                 const auto& vois = v->getParticules();
-                
+
                 for (particule* pi : parts) {
                     const vecteur& posi = pi->getPosition();
 
                     for (particule* pj : vois) {
                         const vecteur& posj = pj->getPosition();
-                    
+
                         double dx = posj.getX() - posi.getX();
                         double dy = posj.getY() - posi.getY();
                         double dz = posj.getZ() - posi.getZ();
@@ -356,9 +434,7 @@ void univers::calcule_forces(){
 
                         double sr2 = sigma2 / dist2;
                         double sr6 = sr2 * sr2 * sr2;
-                        double sr12 = sr6 * sr6;
 
-                        //double coeff_force = coeff * (2.0 * sr12 - sr6) / dist2;
                         double coeff_force = coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
 
                         pi->ajouterForce(dx * coeff_force, dy * coeff_force, dz * coeff_force);
@@ -370,6 +446,13 @@ void univers::calcule_forces(){
     }
 }
 
+/**
+ * @brief Affiche toutes les particules de l'univers.
+ *
+ * @param os Flux de sortie.
+ * @param u Univers à afficher.
+ * @return Le flux de sortie.
+ */
 std::ostream& operator<<(std::ostream& os, const univers& u) {
     for (auto* p : u.getParticules()){
         os << *p << std::endl;

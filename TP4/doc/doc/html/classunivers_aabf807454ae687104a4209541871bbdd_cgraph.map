@@ -1,0 +1,35 @@
+<map id="univers::univers" name="univers::univers">
+<area shape="rect" id="Node000001" title="Constructeur paramétré." alt="" coords="5,347,132,372"/>
+<area shape="rect" id="Node000002" href="$classunivers.html#ac47a217828f9d4f16f4336f9d7f4580b" title="Ajoute une particule à l&#39;univers." alt="" coords="180,247,363,272"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="95,344,231,276,233,281,97,349"/>
+<area shape="rect" id="Node000016" href="$classunivers.html#a3d2ff9e4a5ebe579cc045d482e881e54" title="Initialise la grille de cellules et leurs relations de voisinage." alt="" coords="204,367,339,407"/>
+<area shape="poly" id="edge16_Node000001_Node000016" title=" " alt="" coords="133,365,191,374,190,379,132,371"/>
+<area shape="rect" id="Node000003" href="$classparticule.html#a84a762f956414630ca70f827b8d05dda" title="Retourne la force actuelle appliquée à la particule." alt="" coords="428,5,571,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="275,245,292,207,321,154,360,98,383,71,409,48,433,34,436,38,412,52,387,75,364,101,325,157,297,210,280,248"/>
+<area shape="rect" id="Node000004" href="$classparticule.html#a5ccf30758db4dfa72f7df2c8fbca4f9a" title="Retourne la position de la particule." alt="" coords="639,61,799,87"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="276,245,294,212,323,169,362,126,384,107,409,92,462,72,519,61,574,57,625,59,625,64,574,63,519,66,464,77,412,96,388,111,365,130,327,173,299,215,281,248"/>
+<area shape="rect" id="Node000005" href="$classparticule.html#a4a6bb570cf7fdf30468266109ca5d491" title="Retourne la vitesse de la particule." alt="" coords="421,107,577,132"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="283,244,335,195,370,167,409,142,427,134,430,139,412,147,374,171,338,199,287,248"/>
+<area shape="rect" id="Node000006" href="$classunivers.html#a37e9cda3465739acd51bbf49cc1c56b0" title="Place une particule dans la cellule correspondant à sa position." alt="" coords="411,157,588,197"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="306,244,410,206,429,199,431,204,412,211,308,249"/>
+<area shape="rect" id="Node000011" href="$classparticule.html#a29974793ee7ea0403d2b29bf3dceb2d9" title="Modifie la force actuelle." alt="" coords="428,221,571,247"/>
+<area shape="poly" id="edge11_Node000002_Node000011" title=" " alt="" coords="363,247,414,241,414,246,363,252"/>
+<area shape="rect" id="Node000012" href="$classparticule.html#ac01b7f32f64ff54e5b8f8849dcd81e3b" title="Modifie la position de la particule." alt="" coords="420,271,579,296"/>
+<area shape="poly" id="edge12_Node000002_Node000012" title=" " alt="" coords="363,266,407,271,406,276,363,272"/>
+<area shape="rect" id="Node000013" href="$classparticule.html#a9df04a21516b46248aaaba02d3e82c8a" title="Modifie la vitesse de la particule." alt="" coords="422,320,577,345"/>
+<area shape="poly" id="edge13_Node000002_Node000013" title=" " alt="" coords="309,270,411,305,440,314,439,319,410,310,307,275"/>
+<area shape="rect" id="Node000014" href="$classvecteur.html#a7237602704cd0612f7fc49da039771e6" title="Modifie la composante y." alt="" coords="446,369,553,395"/>
+<area shape="poly" id="edge14_Node000002_Node000014" title=" " alt="" coords="289,270,341,311,376,334,412,354,434,363,432,368,410,359,373,339,338,316,286,274"/>
+<area shape="rect" id="Node000015" href="$classvecteur.html#a150d69328a1af0be34df2ed44b78c9a5" title="Modifie la composante z." alt="" coords="445,419,553,444"/>
+<area shape="poly" id="edge15_Node000002_Node000015" title=" " alt="" coords="287,270,412,404,434,414,431,419,409,408,283,274"/>
+<area shape="poly" id="edge6_Node000006_Node000004" title=" " alt="" coords="560,154,587,141,610,120,635,100,657,89,659,94,637,104,614,125,589,146,563,159"/>
+<area shape="rect" id="Node000007" href="$classvecteur.html#a716c36f6651518aa58194bfedf43e5e8" title="Retourne la composante x." alt="" coords="665,115,774,140"/>
+<area shape="poly" id="edge7_Node000006_Node000007" title=" " alt="" coords="588,154,650,140,652,145,589,159"/>
+<area shape="rect" id="Node000008" href="$classvecteur.html#aeea36061afdcbbde5182fe3ae94967bf" title="Retourne la composante y." alt="" coords="665,164,773,189"/>
+<area shape="poly" id="edge8_Node000006_Node000008" title=" " alt="" coords="588,174,652,174,652,179,588,179"/>
+<area shape="rect" id="Node000009" href="$classvecteur.html#a82fabd96ef74be4ed82f8a2fa2842412" title="Retourne la composante z." alt="" coords="665,213,774,239"/>
+<area shape="poly" id="edge9_Node000006_Node000009" title=" " alt="" coords="589,194,652,208,650,213,588,199"/>
+<area shape="rect" id="Node000010" href="$classunivers.html#ac611173a1b9e82c3b533de4fc191d762" title="Calcule l&#39;indice d&#39;une cellule dans le tableau linéarisé." alt="" coords="636,365,803,391"/>
+<area shape="poly" id="edge10_Node000006_Node000010" title=" " alt="" coords="569,195,590,207,628,241,661,280,707,352,703,354,657,284,624,245,586,211,567,199"/>
+<area shape="poly" id="edge17_Node000016_Node000010" title=" " alt="" coords="304,405,353,432,411,454,460,465,500,469,539,466,587,454,617,443,645,429,691,397,694,401,647,433,619,448,589,459,539,471,500,474,460,470,410,459,351,437,301,410"/>
+</map>

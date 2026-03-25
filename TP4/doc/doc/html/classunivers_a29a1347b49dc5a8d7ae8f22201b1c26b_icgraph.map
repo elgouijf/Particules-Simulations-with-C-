@@ -1,0 +1,12 @@
+<map id="univers::getParticules" name="univers::getParticules">
+<area shape="rect" id="Node000001" title="Retourne l&#39;ensemble des particules." alt="" coords="328,55,491,80"/>
+<area shape="rect" id="Node000002" href="$univers_8cxx.html#aa0cd5286bd1e24afea2c80b312a204b7" title="Affichage textuel de l&#39;univers." alt="" coords="145,5,243,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="339,54,243,32,244,27,341,49"/>
+<area shape="rect" id="Node000003" href="$main_8cxx.html#acfc1e7878600c3a5168af02391ad5c8a" title=" " alt="" coords="122,55,266,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="314,70,266,70,266,65,314,65"/>
+<area shape="rect" id="Node000005" href="$main_8cxx.html#a543c2a8e87daec5bba09b8d9ece95380" title=" " alt="" coords="108,104,280,129"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="341,86,251,107,250,101,340,80"/>
+<area shape="rect" id="Node000004" href="$main_8cxx.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title=" " alt="" coords="5,80,60,105"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="109,83,60,91,60,86,108,78"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="95,105,60,99,60,94,96,99"/>
+</map>

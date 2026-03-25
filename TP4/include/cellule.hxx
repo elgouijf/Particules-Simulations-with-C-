@@ -1,33 +1,88 @@
 #ifndef CELLULE_HXX
 #define CELLULE_HXX
+
 #include "particule.hxx"
 #include <vector>
-#include <iostream> // pour std::ostream
+#include <iostream>
+
+/**
+ * @class cellule
+ * @brief Représente une cellule de la grille spatiale utilisée pour accélérer le calcul des interactions.
+ *
+ * Une cellule contient un ensemble de particules ainsi qu'une liste de cellules voisines.
+ * Cette structure permet de limiter le calcul des interactions aux particules
+ * situées dans la cellule courante et dans les cellules adjacentes.
+ */
 class cellule {
     private:
+        /**
+         * @brief Particules actuellement contenues dans la cellule.
+         */
         std::vector<particule*> particules;
-        int num_particules;
-        //double r_cut;
-        //int dim;
-        //std::vector<double> Lds(dim); // tailles de domaine pour chaque dimension
-        std::vector<cellule*> voisins; // cellules voisines
-    public:
-        cellule();
-        cellule(std::vector<particule*>& v, std::vector<cellule*>& voisins);
-        void ajoute_particule(particule* p);
-        //void evolue_particules(double dt);
-        //void calcule_forces(double G, double eps=1e-9);
 
+        /**
+         * @brief Nombre de particules dans la cellule.
+         */
+        int num_particules;
+
+        /**
+         * @brief Liste des cellules voisines.
+         */
+        std::vector<cellule*> voisins;
+
+    public:
+        /**
+         * @brief Constructeur par défaut.
+         */
+        cellule();
+
+        /**
+         * @brief Constructeur à partir d'une liste de particules et de voisins.
+         * @param v Vecteur des particules contenues dans la cellule.
+         * @param voisins Vecteur des cellules voisines.
+         */
+        cellule(std::vector<particule*>& v, std::vector<cellule*>& voisins);
+
+        /**
+         * @brief Ajoute une particule dans la cellule.
+         * @param p Pointeur vers la particule à ajouter.
+         */
+        void ajoute_particule(particule* p);
+
+        /**
+         * @brief Vide la cellule de toutes ses particules.
+         */
         void vide();
 
+        /**
+         * @brief Ajoute une cellule voisine à la liste des voisins.
+         * @param voisin Pointeur vers la cellule voisine à ajouter.
+         */
         void ajoute_voisin(cellule* voisin);
 
-        const std::vector<particule*>& getParticules() const; // 1 er const pour ne pas modifié le vec retpurné (mais on peu modifié les particules dedans), 2 eme pour ne pas modifié l'objet courant  
-        std::vector<particule*>& getParticules(); // version non const pour pouvoir modifié les particules dans la cellule
+        /**
+         * @brief Retourne les particules contenues dans la cellule.
+         * @return Référence constante vers le vecteur de particules.
+         */
+        const std::vector<particule*>& getParticules() const;
 
+        /**
+         * @brief Retourne les particules contenues dans la cellule.
+         * @return Référence modifiable vers le vecteur de particules.
+         */
+        std::vector<particule*>& getParticules();
+
+        /**
+         * @brief Retourne la liste des cellules voisines.
+         * @return Référence constante vers le vecteur des voisins.
+         */
         const std::vector<cellule*>& getVoisins() const;
-        std::vector<cellule*>& getVoisins(); // version non const pour pouvoir modifié les voisins de la cellule
-        
+
+        /**
+         * @brief Retourne la liste des cellules voisines.
+         * @return Référence modifiable vers le vecteur des voisins.
+         */
+        std::vector<cellule*>& getVoisins();
 };
 
 #endif
