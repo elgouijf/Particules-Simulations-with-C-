@@ -1,0 +1,195 @@
+TP4 - Simulation de particules avec potentiel de Lennard-Jones
+
+1. Introduction
+
+Ce projet consiste à implémenter une simulation de particules en interaction
+via un potentiel de Lennard-Jones. L’objectif est de modéliser le comportement
+de systèmes physiques en tenant compte des forces attractives et répulsives
+entre particules, tout en optimisant les performances du calcul.
+
+Le projet a été réalisé en C++ avec une architecture orientée objet.
+
+------------------------------------------------------------
+
+2. Architecture du projet
+
+Le projet repose sur plusieurs classes principales :
+
+- vecteur :
+  Représente un vecteur en dimension fixe (1D, 2D ou 3D).
+  Permet de manipuler les positions, vitesses et forces.
+
+- particule :
+  Représente une particule avec :
+  - position
+  - vitesse
+  - masse
+  - type
+
+- cellule :
+  Permet de partitionner l’espace en cellules afin de limiter
+  le nombre d’interactions à calculer.
+
+- univers :
+  Contient l’ensemble des particules et gère :
+  - l’évolution temporelle
+  - le calcul des forces
+  - la gestion des cellules
+
+------------------------------------------------------------
+3. Organisation du dépôt
+
+Le dépôt est structuré de la manière suivante :
+
+- include/
+  Contient les fichiers d’en-tête des classes principales :
+  vecteur, particule, cellule, univers.
+
+- src/
+  Contient l’implémentation des classes ainsi que la simulation principale.
+  On y trouve notamment :
+  - main.cxx : simulation 2D principale, version allégée de doc/simu_tp4.cxx
+  - vecteur.cxx
+  - particule.cxx
+  - cellule.cxx
+  - univers.cxx
+
+- test/
+  Contient les programmes de test et de simulation alternative.
+  On y trouve notamment :
+  - test_3d.cxx : simulation 3D
+  - test_plot_ur.cxx : autre programme de test / visualisation
+
+- demo/
+  Contient des démonstrations supplémentaires.
+  On y trouve notamment :
+  - simu_tp4.cxx : programme de démonstration avec les configs du TP4
+
+- doc/
+  Contient les fichiers liés à la documentation (Doxygen, rapports, etc.).
+  Important: Pour avoir acces à la doc doxygen il faut soit lancer lancer la commande doxygen Doxyfile
+             depuis doc/ ou make doc depuis build, cette dernière va créer un sous répo build/doc/ avec la documentation dedans
+
+------------------------------------------------------------
+
+4. Choix algorithmiques
+
+- Potentiel de Lennard-Jones :
+  Le potentiel utilisé est :
+  U(r) = 4ε[(σ/r)^12 - (σ/r)^6]
+
+- Coupure des interactions :
+  Les interactions sont limitées à une distance r_cut = 2.5σ
+  pour réduire le coût de calcul.
+
+- Intégration temporelle :
+  Utilisation du schéma de Störmer-Verlet pour une meilleure
+  stabilité numérique.
+
+- Décomposition spatiale :
+  L’espace est découpé en cellules afin de réduire la complexité
+  du calcul des forces (éviter O(N²)).
+
+------------------------------------------------------------
+
+5. Optimisations réalisées
+
+Plusieurs optimisations ont été mises en place :
+
+- Utilisation de r² au lieu de r :
+  Évite l’utilisation coûteuse de sqrt()
+
+- Évitement des pow() :
+  Remplacement par multiplications successives
+
+- Calcul local :
+  Les interactions sont limitées aux cellules voisines
+
+- Réduction des allocations :
+  Utilisation de références et accès direct aux données
+
+- Boucles optimisées :
+  Évite les calculs redondants et les doubles interactions
+
+------------------------------------------------------------
+
+6. Difficultés rencontrées
+
+- Gestion des interactions :
+  Comprendre et implémenter correctement les interactions
+  entre cellules voisines sans doublons
+
+- Stabilité numérique :
+  Choix du pas de temps (dt) critique pour éviter des
+  comportements instables
+
+- Performance :
+  Sans optimisation, le calcul devient rapidement trop lent
+
+- Debugging :
+  Difficulté à détecter les erreurs physiques (ex : explosion
+  des particules)
+
+- Visualisation :
+  Gestion de gros fichiers (plusieurs centaines de Mo voire Go)
+
+- Simulation principale 2D via src/main.cxx : execution (dans build) ./src/simu
+- Simulation 3D via test/test_3d.cxx : execution (dans build) ./test/test_3d
+- Plotting du potentiel test/test_plot_ur.cxx : execution (dans build) ./test/test_plot_ur
+- Démonstration supplémentaire via demo/simu_tp4.cxx : execution (dans build) ./demo/simu_tp4
+
+------------------------------------------------------------
+
+7. Fonctionnalités implémentées
+
+- Simulation en 1D, 2D et 3D
+- Calcul des forces de Lennard-Jones
+- Coupure des interactions
+- Décomposition en cellules
+- Intégration temporelle
+- Export des données :
+  - format texte
+  - possibilité de conversion binaire
+  - compatible visualisation Python / ParaView
+
+------------------------------------------------------------
+
+8. Résultats
+
+La simulation permet d’observer :
+- collisions entre structures de particules
+- comportements réalistes (agrégation, répulsion)
+- évolution dynamique du système
+
+Les performances sont significativement améliorées grâce
+à l’utilisation des cellules.
+
+------------------------------------------------------------
+
+9. Limites du projet
+
+- Pas de parallélisation (CPU/GPU)
+- Gestion mémoire perfectible pour très grandes simulations
+- Fichiers de sortie très volumineux
+- Pas de conditions aux limites avancées (ex : périodiques)
+- Pas d’interface graphique intégrée
+
+------------------------------------------------------------
+
+10. Améliorations possibles
+
+- Parallélisation (OpenMP / CUDA)
+- Export binaire optimisé
+- Optimisation mémoire
+
+------------------------------------------------------------
+
+11. Conclusion
+
+Ce projet a permis de mettre en pratique :
+- la programmation orientée objet en C++
+- l’optimisation algorithmique
+- la simulation physique
+
+Il constitue une base solide pour des simulations plus
+complexes et plus performantes.

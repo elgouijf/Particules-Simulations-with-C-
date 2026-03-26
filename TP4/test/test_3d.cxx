@@ -11,13 +11,21 @@
 #include <string>
 
 #include "../include/univers.hxx"
-#include "../include/io.hxx"
 
 #ifndef PROJECT_SOURCE_DIR
 #define PROJECT_SOURCE_DIR "."
 #endif
 
-
+/**
+ * @brief Sauvegarde une frame dans un fichier texte.
+ *
+ * Chaque ligne du fichier contient :
+ * frame_id x y z type
+ *
+ * @param file Flux de sortie texte.
+ * @param u Univers contenant les particules.
+ * @param frame_id Identifiant de la frame courante.
+ */
 void sauvegarde_frame(std::ofstream& file, const univers& u, int frame_id) {
     for (particule* p : u.getParticules()) {
         const vecteur& pos = p->getPosition();
@@ -29,8 +37,15 @@ void sauvegarde_frame(std::ofstream& file, const univers& u, int frame_id) {
     }
 } 
 
-
-// Fonction VTK
+/**
+ * @brief Sauvegarde une frame au format VTK.
+ *
+ * Le fichier généré peut être ouvert dans ParaView.
+ *
+ * @param u Univers contenant les particules.
+ * @param frame_id Identifiant de la frame.
+ * @param dossier Dossier dans lequel écrire le fichier VTK.
+ */
 void sauvegarde_frame_vtk(const univers& u, int frame_id, const std::string& dossier = "vtk_frames_3d") {
     std::ostringstream nom;
     nom << dossier << "/frame_"
@@ -71,7 +86,17 @@ void sauvegarde_frame_vtk(const univers& u, int frame_id, const std::string& dos
     }
 }
 
-
+/**
+ * @brief Génère le fichier animation.vtk.series pour ParaView.
+ *
+ * Ce fichier décrit la suite temporelle des frames VTK afin
+ * de permettre leur lecture comme animation.
+ *
+ * @param nb_frames Nombre total de frames sauvegardées.
+ * @param dt Pas de temps de la simulation.
+ * @param save_every Nombre d'itérations entre deux sauvegardes.
+ * @param dossier Dossier contenant les fichiers VTK.
+ */
 void ecrire_fichier_series_json(int nb_frames, double dt, int save_every, const std::string& dossier = "vtk_frames_3d") {
     std::ofstream file(dossier + "/animation.vtk.series");
     if (!file.is_open()) {
@@ -98,13 +123,14 @@ void ecrire_fichier_series_json(int nb_frames, double dt, int save_every, const 
     file << "}\n";
 }
 
-
-// Vérifie si ParaView existe
-bool paraview_disponible() {
-    return std::system("command -v paraview >/dev/null 2>&1") == 0;
-}
-
-
+/**
+ * @brief Recherche le script Python de visualisation 3D.
+ *
+ * Plusieurs chemins sont testés afin de permettre l'exécution
+ * depuis différents répertoires.
+ *
+ * @return Le chemin du script si trouvé, une chaîne vide sinon.
+ */
 std::string trouver_script_python_3d() {
     std::vector<std::string> candidats = {
         std::string(PROJECT_SOURCE_DIR) + "/src/python_plot/plot_collision_3d.py",
@@ -121,28 +147,32 @@ std::string trouver_script_python_3d() {
     return "";
 }
 
-
+/**
+ * @brief Programme principal de simulation 3D.
+ *
+ * Ce programme :
+ * - initialise un cube de particules au-dessus d'un pavé,
+ * - simule leur collision avec un potentiel de Lennard-Jones,
+ * - sauvegarde les frames soit en texte, soit en VTK,
+ * - génère en mode VTK un fichier animation.vtk.series,
+ * - lance en mode texte un script Python de visualisation 3D.
+ *
+ * Modes disponibles :
+ * - 't' : export texte + visualisation Python
+ * - 'v' : export VTK + génération du fichier animation.vtk.series
+ *
+ * @return EXIT_SUCCESS si l'exécution se termine correctement,
+ *         EXIT_FAILURE en cas d'erreur.
+ */
 int main(){
 
     char mode;
     std::cout << "Choisir le mode : (t = txt, v = vtk) : ";
     std::cin >> mode;
 
-    bool lancer_paraview = false;
-
-    if (mode == 'v') {
-        if (paraview_disponible()) {
-            lancer_paraview = true;
-        } else {
-            std::cout << "ParaView n'est pas detecte : soit vouus ne l'avez pas, ou on arrive pas à le trouver.\n";
-            std::cout << "Voulez-vous quand meme generer les fichiers VTK (et lancer la simu à la main)? (y/n) : ";
-            char rep;
-            std::cin >> rep;
-
-            if (rep != 'y') {
-                return EXIT_FAILURE;
-            }
-        }
+    if (mode != 't' && mode != 'v') {
+        std::cerr << "Mode invalide. Choisir 't' ou 'v'.\n";
+        return EXIT_FAILURE;
     }
 
     // Caractéristiques de l'univers
@@ -158,12 +188,10 @@ int main(){
                                                         // une sphère de rayon dist_entre_particules/2, pour que les particules
     std::vector<particule*> particules;
 
-
     // Simulation duration and number of frames
     //double duration = 19.5; // durée de la simulation en secondes
-    double duration = 12.0;
+    double duration = 10.0;
     int num_frames = duration / dt;
-
 
     // Vitesses des coprs
     // !!!!! Attention l'objet vecteur et conçu pour être un vecteur 3D, donc ici cette fois on utilise vraiment les 3 dimensions
@@ -176,9 +204,9 @@ int main(){
     int N1y = 10; // nombre de particules selon y pour le cube du haut
     int N1z = 10; // nombre de particules selon z pour le cube du haut
 
-    int N2x = 20; // nombre de particules selon x pour le pavé du bas
-    int N2y = 20; // nombre de particules selon y pour le pavé du bas
-    int N2z = 20;  // nombre de particules selon z pour le pavé du bas
+    int N2x = 10; // nombre de particules selon x pour le pavé du bas
+    int N2y = 30; // nombre de particules selon y pour le pavé du bas
+    int N2z = 10;  // nombre de particules selon z pour le pavé du bas
 
     int N1 = N1x * N1y * N1z; // nombre de particules du cube
     int N2 = N2x * N2y * N2z; // nombre de particules du pavé
@@ -202,10 +230,8 @@ int main(){
     double y0_cube = y0_pave + (largeur_pave_y - largeur_cube_y) / 2.0;
     double z0_cube = z0_pave + N2z * dist_entre_particules + 5.0;
 
-
     //!!!!!!!!!!!! Important: Sauvegarder chauqe les x frames !!!!!!!!!!!!!!!!!!!!!!
-    int save_every = 100;
-
+    int save_every = 200;
 
     for (int k = 0; k < N1z; ++k) {
         for (int j = 0; j < N1y; ++j) {
@@ -220,7 +246,6 @@ int main(){
         }
     }
 
-    
     for (int k = 0; k < N2z; ++k) {
         for (int j = 0; j < N2y; ++j) {
             for (int i = 0; i < N2x; ++i) {
@@ -272,7 +297,6 @@ int main(){
     }
 
     auto end = std::chrono::high_resolution_clock::now();
-
     std::chrono::duration<double> elapsed = end - start;
 
     std::cout << "Temps de simulation : " << elapsed.count() << " secondes\n";
@@ -296,13 +320,9 @@ int main(){
 
     if (mode == 'v') {
         ecrire_fichier_series_json(frame_id, dt, save_every, "vtk_frames_3d");
-    }
-
-    if (mode == 'v' && lancer_paraview) {
-        int code_paraview = system("paraview vtk_frames_3d/animation.vtk.series &");
-        if (code_paraview != 0) {
-            std::cerr << "Erreur lors du lancement de ParaView.\n";
-        }
+        std::cout << "Fichier de series genere : "
+                  << std::filesystem::absolute("vtk_frames_3d/animation.vtk.series")
+                  << "\n";
     }
 
     return EXIT_SUCCESS;

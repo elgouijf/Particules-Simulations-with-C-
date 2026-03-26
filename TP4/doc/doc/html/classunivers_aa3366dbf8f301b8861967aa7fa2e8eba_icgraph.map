@@ -1,8 +1,0 @@
-<map id="univers::calcule_forces" name="univers::calcule_forces">
-<area shape="rect" id="Node000001" title="Calcule les forces exercées sur toutes les particules." alt="" coords="349,31,520,56"/>
-<area shape="rect" id="Node000002" href="$classunivers.html#a23e2a5ae9b01ef2b08756f12799bf830" title="Fait évoluer toutes les particules sur un pas de temps." alt="" coords="108,5,301,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="336,35,301,31,302,26,336,30"/>
-<area shape="rect" id="Node000003" href="$main_8cxx.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title=" " alt="" coords="5,31,60,56"/>
-<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="335,46,60,46,60,41,335,41"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,35,61,42,60,37,104,30"/>
-</map>

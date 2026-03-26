@@ -180,6 +180,19 @@ void univers::evolue_particules(double dt) {
     }
 }
 
+
+double univers::energie_cinetique() const {
+    double Ec = 0.0;
+
+    for (const particule* p : particules) {
+        const vecteur& v = p->getVitesse();
+        double v2 = v.getX()*v.getX() + v.getY()*v.getY() + v.getZ()*v.getZ();
+        Ec += 0.5 * p->getMasse() * v2;
+    }
+
+    return Ec;
+}
+
 /**
  * @brief Vide toutes les cellules de la grille.
  *

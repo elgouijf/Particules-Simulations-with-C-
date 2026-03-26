@@ -200,6 +200,8 @@ class univers {
          * @param sigma Nouvelle valeur de sigma.
          */
         void setSigma(double sigma);
+
+        double energie_cinetique() const;
 };
 
 /**

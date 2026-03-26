@@ -1,9 +1,0 @@
-<map id="univers::vide_cellules" name="univers::vide_cellules">
-<area shape="rect" id="Node000001" title="Vide toutes les cellules de l&#39;univers." alt="" coords="581,13,744,38"/>
-<area shape="rect" id="Node000002" href="$classunivers.html#ad569d437d3b452685d6b343eaa4919e3" title="Replace toutes les particules dans la grille de cellules." alt="" coords="349,5,533,45"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="568,28,534,28,534,23,568,23"/>
-<area shape="rect" id="Node000003" href="$classunivers.html#a23e2a5ae9b01ef2b08756f12799bf830" title="Fait évoluer toutes les particules sur un pas de temps." alt="" coords="108,13,301,38"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="336,28,301,28,301,23,336,23"/>
-<area shape="rect" id="Node000004" href="$main_8cxx.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title=" " alt="" coords="5,13,60,38"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="94,28,60,28,60,23,94,23"/>
-</map>

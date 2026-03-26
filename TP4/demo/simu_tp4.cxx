@@ -184,8 +184,8 @@ int main(){
     double sigma = 1.0;
     double epsilon = 5.0;
     double mass = 1.0;
-    //double dt = 0.00005;
-    double dt = 0.001;
+    double dt = 0.00005;
+    //double dt = 0.001;
     double rcut = 2.5 * sigma;
     int dim = 2;
     std::vector<double> Lds = {250.0, 150.0};
@@ -193,8 +193,8 @@ int main(){
     std::vector<particule*> particules;
 
     // Durée de la simulation
-    //double duration = 19.5;
-    double duration = 13.0;
+    double duration = 19.5;
+    //double duration = 13.0;
     int num_frames = duration / dt;
 
     // Vitesses initiales

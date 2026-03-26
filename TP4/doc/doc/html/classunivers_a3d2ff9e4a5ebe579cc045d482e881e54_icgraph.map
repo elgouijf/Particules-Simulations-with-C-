@@ -1,7 +1,0 @@
-<map id="univers::initialise_cellules" name="univers::initialise_cellules">
-<area shape="rect" id="Node000001" title="Initialise la grille de cellules et leurs relations de voisinage." alt="" coords="180,23,315,63"/>
-<area shape="rect" id="Node000002" href="$classunivers.html#af9e6f24e9d5d29d66c531c8ea0f61b34" title="Constructeur par défaut." alt="" coords="5,5,132,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,35,132,30,133,24,167,29"/>
-<area shape="rect" id="Node000003" href="$classunivers.html#aabf807454ae687104a4209541871bbdd" title="Constructeur paramétré." alt="" coords="5,55,132,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="167,57,133,61,132,56,166,52"/>
-</map>

@@ -1,161 +1,40 @@
-/**
- * @file test_simulation_collision_3d.cxx
- * @brief Simulation de collision de particules avec potentiel de Lennard-Jones.
- *
- * Ce programme :
- * - génère deux ensembles de particules (cube et pavé),
- * - simule leur interaction via un potentiel de Lennard-Jones,
- * - sauvegarde les résultats en format texte ou VTK,
- * - permet une visualisation avec Python ou ParaView.
- *
- * Modes :
- * - 't' : sortie texte + visualisation Python
- * - 'v' : sortie VTK + visualisation ParaView
- */
-
 #include <iostream>
-#include <vector>
-#include <cmath>
-#include <filesystem>
 #include <fstream>
-#include <sstream>
-#include <iomanip>
-#include <chrono>
+#include <cmath>
 #include <cstdlib>
 #include <string>
-
-#include "../include/univers.hxx"
-#include "../include/io.hxx"
+#include <filesystem>
+#include <vector>
 
 #ifndef PROJECT_SOURCE_DIR
 #define PROJECT_SOURCE_DIR "."
 #endif
 
 /**
- * @brief Sauvegarde une frame de simulation dans un fichier texte.
+ * @brief Calcule le potentiel de Lennard-Jones pour une distance donnée.
  *
- * Format :
- * frame_id x y z type
- *
- * @param file Flux de sortie.
- * @param u Univers contenant les particules.
- * @param frame_id Identifiant de la frame.
+ * @param r Distance entre deux particules.
+ * @return Valeur du potentiel U(r).
  */
-void sauvegarde_frame(std::ofstream& file, const univers& u, int frame_id) {
-    for (particule* p : u.getParticules()) {
-        const vecteur& pos = p->getPosition();
-        file << frame_id << " "
-             << pos[0] << " "
-             << pos[1] << " "
-             << pos[2] << " "
-             << p->getType() << "\n";
-    }
+double U_r(double r) {
+    double epsilon = 1.0;
+    double sigma = 1.0;
+    return 4 * epsilon * (std::pow(sigma / r, 12) - std::pow(sigma / r, 6));
 }
 
 /**
- * @brief Sauvegarde une frame au format VTK.
+ * @brief Recherche le script Python de tracé du potentiel de Lennard-Jones.
  *
- * Permet une visualisation 3D dans ParaView.
+ * Teste plusieurs chemins possibles pour permettre l'exécution
+ * depuis différents répertoires.
  *
- * @param u Univers contenant les particules.
- * @param frame_id Identifiant de la frame.
- * @param dossier Dossier de sortie.
+ * @return Chemin du script s'il est trouvé, chaîne vide sinon.
  */
-void sauvegarde_frame_vtk(const univers& u, int frame_id, const std::string& dossier = "vtk_frames_3d") {
-    std::ostringstream nom;
-    nom << dossier << "/frame_"
-        << std::setw(6) << std::setfill('0') << frame_id
-        << ".vtk";
-
-    std::ofstream file(nom.str());
-    if (!file.is_open()) {
-        std::cerr << "Impossible d'ouvrir " << nom.str() << "\n";
-        return;
-    }
-
-    const std::vector<particule*>& particules = u.getParticules();
-    int N = particules.size();
-
-    file << "# vtk DataFile Version 3.0\n";
-    file << "Frame " << frame_id << "\n";
-    file << "ASCII\n";
-    file << "DATASET POLYDATA\n";
-
-    file << "POINTS " << N << " float\n";
-    for (particule* p : particules) {
-        const vecteur& pos = p->getPosition();
-        file << pos[0] << " " << pos[1] << " " << pos[2] << "\n";
-    }
-
-    file << "\nVERTICES " << N << " " << 2 * N << "\n";
-    for (int i = 0; i < N; ++i) {
-        file << "1 " << i << "\n";
-    }
-
-    file << "\nPOINT_DATA " << N << "\n";
-
-    file << "SCALARS type int 1\n";
-    file << "LOOKUP_TABLE default\n";
-    for (particule* p : particules) {
-        file << p->getType() << "\n";
-    }
-}
-
-/**
- * @brief Génère un fichier .vtk.series pour ParaView.
- *
- * Permet d'interpréter une séquence de fichiers VTK comme une animation.
- *
- * @param nb_frames Nombre de frames.
- * @param dt Pas de temps.
- * @param save_every Intervalle de sauvegarde.
- * @param dossier Dossier des fichiers VTK.
- */
-void ecrire_fichier_series_json(int nb_frames, double dt, int save_every, const std::string& dossier = "vtk_frames_3d") {
-    std::ofstream file(dossier + "/animation.vtk.series");
-    if (!file.is_open()) {
-        std::cerr << "Impossible d'ouvrir " << dossier << "/animation.vtk.series\n";
-        return;
-    }
-
-    file << "{\n";
-    file << "  \"file-series-version\" : \"1.0\",\n";
-    file << "  \"files\" : [\n";
-
-    for (int i = 0; i < nb_frames; ++i) {
-        std::ostringstream nom;
-        nom << "frame_" << std::setw(6) << std::setfill('0') << i << ".vtk";
-
-        double temps = i * save_every * dt;
-
-        file << "    { \"name\" : \"" << nom.str() << "\", \"time\" : " << temps << " }";
-        if (i != nb_frames - 1) file << ",";
-        file << "\n";
-    }
-
-    file << "  ]\n";
-    file << "}\n";
-}
-
-/**
- * @brief Vérifie la présence de ParaView.
- *
- * @return true si ParaView est disponible.
- */
-bool paraview_disponible() {
-    return std::system("command -v paraview >/dev/null 2>&1") == 0;
-}
-
-/**
- * @brief Recherche le script Python de visualisation 3D.
- *
- * @return Chemin du script ou chaîne vide.
- */
-std::string trouver_script_python_3d() {
+std::string trouver_script_python_lj() {
     std::vector<std::string> candidats = {
-        std::string(PROJECT_SOURCE_DIR) + "/src/python_plot/plot_collision_3d.py",
-        "src/python_plot/plot_collision_3d.py",
-        "../src/python_plot/plot_collision_3d.py"
+        std::string(PROJECT_SOURCE_DIR) + "/src/python_plot/plot_ur.py",
+        "src/python_plot/plot_ur.py",
+        "../src/python_plot/plot_ur.py"
     };
 
     for (const auto& chemin : candidats) {
@@ -168,17 +47,15 @@ std::string trouver_script_python_3d() {
 }
 
 /**
- * @brief Programme principal.
+ * @brief Génère des données du potentiel de Lennard-Jones et lance leur tracé.
  *
- * Étapes :
- * - choix du mode (texte ou VTK),
- * - création des particules,
- * - simulation temporelle (Verlet),
- * - sauvegarde et visualisation.
+ * Ce programme :
+ * - génère un fichier lj.txt contenant (r, U(r))
+ * - appelle un script Python pour tracer le potentiel
  *
- * @return EXIT_SUCCESS si succès.
+ * @return 0 si succès, 1 sinon.
  */
-int main(){
+int main() {
     std::ofstream file("lj.txt");
     if (!file.is_open()) {
         std::cerr << "Impossible d'ouvrir lj.txt\n";
