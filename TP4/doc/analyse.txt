@@ -68,7 +68,7 @@ Le dépôt est structuré de la manière suivante :
 - doc/
   Contient les fichiers liés à la documentation (Doxygen, rapports, etc.).
   Important: Pour avoir acces à la doc doxygen il faut soit lancer lancer la commande doxygen Doxyfile
-             depuis doc/ ou make doc depuis build, cette dernière va créer un sous répo build/doc/ avec la documentation dedans
+             depuis doc/ ou make doc depuis build, cette dernière va créer un sous répo doc/html/ avec la documentation index.html dedans
 
 ------------------------------------------------------------
 
