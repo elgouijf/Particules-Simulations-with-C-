@@ -1,1 +1,1 @@
-To be written down the line
+Cette Branche correspond au Rendu intéermidiare.
