@@ -1,0 +1,38 @@
+@startuml
+left to right direction
+
+actor Utilisateur
+actor ParaView
+actor "Script Python" as Python
+
+rectangle "Système de simulation de particules" {
+  usecase "Configurer la\nsimulation" as UC1
+  usecase "Initialiser\nl'univers" as UC2
+  usecase "Ajouter des\nparticules" as UC3
+  usecase "Lancer la\nsimulation" as UC4
+  usecase "Calculer les\nforces" as UC5
+  usecase "Mettre à jour les\nparticules" as UC6
+  usecase "Sauvegarder les\nframes" as UC7
+  usecase "Exporter en TXT" as UC8
+  usecase "Exporter en VTK" as UC9
+  usecase "Exporter en VTU" as UC10
+  usecase "Visualiser les\nrésultats" as UC11
+}
+
+Utilisateur --> UC1
+Utilisateur --> UC3
+Utilisateur --> UC4
+Utilisateur --> UC11
+
+UC4 .> UC2 : <<include>>
+UC4 .> UC5 : <<include>>
+UC4 .> UC6 : <<include>>
+UC4 .> UC7 : <<include>>
+
+UC7 .> UC8 : <<extend>>
+UC7 .> UC9 : <<extend>>
+UC7 .> UC10 : <<extend>>
+
+ParaView --> UC11
+Python --> UC11
+@enduml

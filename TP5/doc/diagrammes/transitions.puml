@@ -1,0 +1,12 @@
+@startuml
+[*] --> Non_initialisee
+
+Non_initialisee --> Initialisee : création de l'univers\net ajout des particules
+Initialisee --> Forces_calculees : calcule_forces()
+Forces_calculees --> En_evolution : evolue_particules(dt)
+En_evolution --> Frame_sauvegardee : frame % save_every == 0
+Frame_sauvegardee --> Forces_calculees : itération suivante
+En_evolution --> Forces_calculees : itération suivante sans sauvegarde
+En_evolution --> Terminee : fin de la boucle temporelle
+Terminee --> [*]
+@enduml

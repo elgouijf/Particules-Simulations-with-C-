@@ -1,0 +1,83 @@
+@startuml
+
+class Simulation {
+  +modeSortie
+  +dt
+  +duration
+  +save_every
+  +executer()
+}
+
+class Univers {
+  -particules
+  -cellules
+  -num_particules
+  -dim
+  -Lds
+  -r_cut
+  -eps
+  -sigma
+  +ajoute_particule(p)
+  +calcule_forces()
+  +evolue_particules(dt)
+  +place_particules_dans_cellules()
+  +energie_cinetique()
+}
+
+class Cellule {
+  -particules
+  -voisins
+  +ajoute_particule(p)
+  +ajoute_voisin(c)
+  +vide()
+}
+
+class Particule {
+  -id
+  -type
+  -masse
+  -position
+  -vitesse
+  -force
+  -force_old
+  +evolue(dt)
+  +avance_position_verlet(dt)
+  +avance_vitesse_verlet(dt)
+  +ajouterForce(...)
+}
+
+class Vecteur {
+  -x
+  -y
+  -z
+  +norme()
+  +operator+()
+  +operator-()
+  +operator*()
+  +operator/()
+}
+
+class IO {
+  +sauvegarde_frame_txt(...)
+  +sauvegarde_frame_vtk(...)
+  +sauvegarde_frame_vtu(...)
+  +ecrire_fichier_series_json(...)
+}
+
+Simulation --> Univers : utilise
+Simulation --> IO : utilise
+
+Univers "1" *-- "0..*" Particule : contient
+Univers "1" *-- "1..*" Cellule : contient
+
+Cellule "1" --> "0..*" Particule : référence
+Cellule "1" --> "0..*" Cellule : voisins
+
+Particule --> Vecteur : position
+Particule --> Vecteur : vitesse
+Particule --> Vecteur : force
+Particule --> Vecteur : force_old
+
+IO --> Univers : lit les données
+
+@enduml

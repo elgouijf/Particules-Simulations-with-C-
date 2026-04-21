@@ -1,0 +1,46 @@
+@startuml
+actor Utilisateur
+participant main
+participant univers
+participant particule
+participant cellule
+participant io
+
+Utilisateur -> main : lancer la simulation
+main -> univers : créer univers(Lds, r_cut, dim, eps, sigma)
+
+loop pour chaque particule initiale
+  main -> univers : ajoute_particule(p)
+  univers -> cellule : place_particule_dans_cellule(p)
+end
+
+main -> univers : calcule_forces()
+
+loop pour chaque pas de temps
+  main -> univers : evolue_particules(dt)
+
+  loop pour chaque particule
+    univers -> particule : avance_position_verlet(dt)
+  end
+
+  univers -> univers : place_particules_dans_cellules()
+
+  loop pour chaque cellule
+    univers -> cellule : vide()
+    univers -> cellule : ajoute_particule(...)
+  end
+
+  univers -> univers : calcule_forces()
+
+  loop pour chaque particule
+    univers -> particule : avance_vitesse_verlet(dt)
+  end
+
+  alt frame à sauvegarder
+    main -> io : sauvegarde_frame_txt(...) / sauvegarde_frame_vtk(...) / sauvegarde_frame_vtu(...)
+  end
+end
+
+main -> io : ecrire_fichier_series_json(...)
+main --> Utilisateur : fin de simulation
+@enduml
