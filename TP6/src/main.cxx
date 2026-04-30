@@ -104,7 +104,7 @@ int main(){
     int N2 = 160*40;
 
     // Création de l'univers
-    univers uni(particules, Lds, rcut, dim, epsilon, sigma);
+    univers uni(particules, Lds, rcut, dim, epsilon, sigma,0.0);
 
     int id = 0;
     double largeur_carre = 39 * dist_entre_particules;

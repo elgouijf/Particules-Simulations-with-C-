@@ -1,4 +1,5 @@
 #include "univers.hxx"
+#include <algorithm>
 #include <cmath>
 
 /**
@@ -86,6 +87,64 @@ univers::univers(std::vector<particule*>& v,
         if (this->ncd[i] < 1) this->ncd[i] = 1;
     }
 
+
+    this->condl_xmin = ConditionLimite::Reflexive;
+    this->condl_xmax = ConditionLimite::Reflexive;
+    this->condl_ymin = ConditionLimite::Reflexive;
+    this->condl_ymax = ConditionLimite::Reflexive;
+    this->condl_zmin = ConditionLimite::Reflexive;
+    this->condl_zmax = ConditionLimite::Reflexive; 
+    initialise_cellules();
+
+    this->particules.reserve(v.size());
+    for (particule* p : v) {
+        ajoute_particule(p);
+    }
+
+}
+
+univers::univers(std::vector<particule*>& v,
+    std::vector<double> Lds,
+    double r_cut,
+    int dim,
+    double eps,
+    double sigma,
+    double G
+){
+    this->num_particules = 0;
+
+    this->r_cut = r_cut;
+    this->eps = eps;
+    this->sigma = sigma;
+    this->G = G;
+
+    if (dim < 1 || dim > 3) {
+        std::cerr << "Dimension must be between 1 and 3. Setting to 3." << std::endl;
+        this->dim = 3;
+    } else {
+        this->dim = dim;
+    }
+
+    if (Lds.size() != this->dim) {
+        std::cerr << "Size of Lds must match the dimension. Setting to default values." << std::endl;
+        this->Lds = std::vector<double>(this->dim, 10.0);
+    } else {
+        this->Lds = Lds;
+    }
+
+    this->ncd = std::vector<int>(this->dim);
+    for (int i = 0; i < this->dim; ++i) {
+        this->ncd[i] = static_cast<int>(this->Lds[i] / r_cut);
+        if (this->ncd[i] < 1) this->ncd[i] = 1;
+    }
+
+
+    this->condl_xmin = ConditionLimite::Reflexive;
+    this->condl_xmax = ConditionLimite::Reflexive;
+    this->condl_ymin = ConditionLimite::Reflexive;
+    this->condl_ymax = ConditionLimite::Reflexive;
+    this->condl_zmin = ConditionLimite::Reflexive;
+    this->condl_zmax = ConditionLimite::Reflexive; 
     initialise_cellules();
 
     this->particules.reserve(v.size());
@@ -180,6 +239,7 @@ void univers::ajoute_particule(particule* p) {
  * @param dt Pas de temps.
  */
 void univers::evolue_particules(double dt) {
+
     for (particule* p : particules) {
         p->avance_position_verlet(dt);
     }
@@ -187,7 +247,18 @@ void univers::evolue_particules(double dt) {
     place_particules_dans_cellules();
     calcule_forces();
 
+    for (int i = particules.size() - 1; i > -1  ; i--) {
+        if (!applique_conditions_limites_particule(particules[i])) {
+            std :: cout << "inbnb";
+            delete particules[i];
+            particules.erase(particules.begin() + i);
+            num_particules--;
+        }
+    }
+
     for (particule* p : particules) {
+        double Fg = -G * p->getMasse();
+        p->ajouterForce(0, 0, Fg);
         p->avance_vitesse_verlet(dt);
     }
 }
@@ -205,6 +276,14 @@ double univers::energie_cinetique() const {
     return Ec;
 }
 
+double univers::calcule_force_mur(double r){
+    r = std::max(r, 1e-6); // Pour la stabilité mathématique
+
+    double sigma_r = sigma / (2.0 * r);
+    double sigma_r_6 = sigma_r*sigma_r*sigma_r*sigma_r*sigma_r*sigma_r;
+
+    return -24.0 * eps * (1.0 / (2.0*r)) * sigma_r_6 * (1.0 - 2.0*sigma_r_6);
+}
 /**
  * @brief Vide toutes les cellules de la grille.
  *
@@ -424,53 +503,57 @@ void univers::setConditionsLimites(ConditionLimite cond_xmin, ConditionLimite co
 bool univers::applique_conditions_limites_particule(particule* p){
     vecteur pos = p->getPosition();
     vecteur vit = p->getVitesse();
+    double r_cut_mur = pow(2.0, 1.0/6.0) * sigma;
+
 
     // Conditions aux limites, bornes négatives
 
     // x
-    if (pos.getX() < 0.0) {
-        if (condl_xmin == ConditionLimite::Reflexive) {
-            pos.setX(-pos.getX());
-            vit.setX(-vit.getX());
-        } else if (condl_xmin == ConditionLimite::Absorbante) {
+    if (condl_xmin == ConditionLimite::Reflexive && pos.getX() < r_cut_mur) {
+            double Fi = calcule_force_mur(std::abs(pos.getX()));
+            p->ajouterForce(Fi,0,0);
+    } else if (pos.getX() < 0.0) {
+        if (condl_xmin == ConditionLimite::Absorbante) {
             return false;
         } else if (condl_xmin == ConditionLimite::Periodique) {
             pos.setX(pos.getX() + Lds[0]);
         }
-
     }
 
     // y
-    if (pos.getY() < 0.0) {
-        if (condl_ymin == ConditionLimite::Reflexive) {
-            pos.setY(-pos.getY());
-            vit.setY(-vit.getY());
-        } else if (condl_ymin == ConditionLimite::Absorbante) {
+    if (condl_ymin == ConditionLimite::Reflexive && pos.getY() < r_cut_mur) {
+            double Fi = calcule_force_mur(std::abs(pos.getY()));
+            p->ajouterForce(0,Fi,0);
+    } else if (pos.getY() < 0.0) {
+        if (condl_ymin == ConditionLimite::Absorbante) {
             return false;
         } else if (condl_ymin == ConditionLimite::Periodique) {
             pos.setY(pos.getY() + Lds[1]);
         }
     }
 
+
     // z
-    if (pos.getZ() < 0.0) {
-        if (condl_zmin == ConditionLimite::Reflexive) {
-            pos.setZ(-pos.getZ());
-            vit.setZ(-vit.getZ());
-        } else if (condl_zmin == ConditionLimite::Absorbante) {
+    if (condl_zmin == ConditionLimite::Reflexive && pos.getZ() < r_cut_mur) {
+            double Fi = calcule_force_mur(std::abs(pos.getZ()));
+            p->ajouterForce(0,0,Fi);
+    } else if (pos.getZ() < 0.0) {
+        if (condl_zmin == ConditionLimite::Absorbante) {
             return false;
         } else if (condl_zmin == ConditionLimite::Periodique) {
             pos.setZ(pos.getZ() + Lds[2]);
         }
     }
 
+
+
     // Conditions aux limites, bornes positives
     // x
-    if (pos.getX() > Lds[0]) {
-        if (condl_xmax == ConditionLimite::Reflexive) {
-            pos.setX(2.0 * Lds[0] - pos.getX());
-            vit.setX(-vit.getX());
-        } else if (condl_xmax == ConditionLimite::Absorbante) {
+    if (condl_xmax == ConditionLimite::Reflexive && pos.getX() > Lds[0] - r_cut_mur) {
+            double Fi = calcule_force_mur(abs(Lds[0] -pos.getX()));
+            p->ajouterForce(-Fi,0,0);
+    } else if (pos.getX() > Lds[0]) {
+        if (condl_xmax == ConditionLimite::Absorbante) {
             return false;
         } else if (condl_xmax == ConditionLimite::Periodique) {
             pos.setX(pos.getX() - Lds[0]);
@@ -478,11 +561,11 @@ bool univers::applique_conditions_limites_particule(particule* p){
     }
 
     // y
-    if (pos.getY() > Lds[1]) {
-        if (condl_ymax == ConditionLimite::Reflexive) {
-            pos.setY(2.0 * Lds[1] - pos.getY());
-            vit.setY(-vit.getY());
-        } else if (condl_ymax == ConditionLimite::Absorbante) {
+    if (condl_ymax == ConditionLimite::Reflexive && pos.getY() > Lds[1] - r_cut_mur) {
+            double Fi = calcule_force_mur(abs(Lds[1] -pos.getY()));
+            p->ajouterForce(0,-Fi,0);
+    } else if (pos.getY() > Lds[1]) {
+        if (condl_ymax == ConditionLimite::Absorbante) {
             return false;
         } else if (condl_ymax == ConditionLimite::Periodique) {
             pos.setY(pos.getY() - Lds[1]);
@@ -490,16 +573,16 @@ bool univers::applique_conditions_limites_particule(particule* p){
     }
 
     // z
-    if (pos.getZ() > Lds[2]) {
-        if (condl_zmax == ConditionLimite::Reflexive) {
-            pos.setZ(2.0 * Lds[2] - pos.getZ());
-            vit.setZ(-vit.getZ());
-        } else if (condl_zmax == ConditionLimite::Absorbante) {
+    if (condl_zmax == ConditionLimite::Reflexive && pos.getZ() > Lds[2] - r_cut_mur) {
+            double Fi = calcule_force_mur(abs(Lds[2] -pos.getZ()));
+            p->ajouterForce(0,0,-Fi);
+    } else if (pos.getZ() > Lds[2]) {
+        if (condl_zmax == ConditionLimite::Absorbante) {
             return false;
         } else if (condl_zmax == ConditionLimite::Periodique) {
             pos.setZ(pos.getZ() - Lds[2]);
         }
-    } 
+    }
 
     // Mettre à jour la position et la vitesse de la particule
     p->setPosition(pos);
@@ -507,6 +590,16 @@ bool univers::applique_conditions_limites_particule(particule* p){
 
     return true;
 
+}
+
+void univers::limite_vitesses(int N1, int N2){
+    double Ec_D = 0.005*(N1+N2);
+    double Ec = energie_cinetique();
+    double beta = sqrt(Ec_D/Ec);
+    for (particule *p : particules){
+        vecteur v = p->getVitesse();
+        p->setVitesse(v*beta);
+    }
 }
 
 /**

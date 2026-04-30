@@ -40,6 +40,8 @@ class univers {
          */
         double r_cut;
 
+        double G;
+
         /**
          * @brief Dimension de l'univers (1, 2 ou 3).
          */
@@ -88,6 +90,8 @@ class univers {
          */
         univers();
 
+        univers(std::vector<particule*>& v, std::vector<double> Lds, double r_cut, int dim, double eps, double sigma);
+
         /**
          * @brief Constructeur paramétré.
          * @param v Vecteur initial de particules.
@@ -97,7 +101,9 @@ class univers {
          * @param eps Paramètre epsilon du potentiel de Lennard-Jones.
          * @param sigma Paramètre sigma du potentiel de Lennard-Jones.
          */
-        univers(std::vector<particule*>& v, std::vector<double> Lds, double r_cut, int dim, double eps, double sigma);
+        univers(std::vector<particule*>& v, std::vector<double> Lds, double r_cut, int dim, double eps, double sigma,double G);
+
+        
 
         /**
          * @brief Destructeur.
@@ -225,6 +231,10 @@ class univers {
         void applique_conditions_limites();
 
         bool applique_conditions_limites_particule(particule* p);
+
+        double calcule_force_mur(double r);
+
+        void limite_vitesses(int N1,int N2);
 };
 
 /**

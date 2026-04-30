@@ -54,7 +54,7 @@ TEST(UniversTest, ConstructeurAvecParametresValides) {
     std::vector<particule*> parts;
     std::vector<double> Lds = {6.0, 8.0};
 
-    univers u(parts, Lds, 2.0, 2, 1.5, 0.8);
+    univers u(parts, Lds, 2.0, 2, 1.5, 0.8,0.0);
 
     EXPECT_EQ(u.getNumParticules(), 0);
     EXPECT_EQ(u.getDim(), 2);
@@ -78,7 +78,7 @@ TEST(UniversTest, ConstructeurDimensionInvalide) {
     std::vector<particule*> parts;
     std::vector<double> Lds = {1.0, 2.0, 3.0};
 
-    univers u(parts, Lds, 1.0, 5, 1.0, 1.0);
+    univers u(parts, Lds, 1.0, 5, 1.0, 1.0,0.0);
 
     EXPECT_EQ(u.getDim(), 3);
     ASSERT_EQ(u.getLds().size(), 3);
@@ -94,7 +94,7 @@ TEST(UniversTest, ConstructeurLdsInvalide) {
     std::vector<particule*> parts;
     std::vector<double> Lds = {5.0}; // taille incohérente pour dim = 2
 
-    univers u(parts, Lds, 2.0, 2, 1.0, 1.0);
+    univers u(parts, Lds, 2.0, 2, 1.0, 1.0,0.0);
 
     EXPECT_EQ(u.getDim(), 2);
     ASSERT_EQ(u.getLds().size(), 2);
@@ -122,7 +122,7 @@ TEST(UniversTest, AjouteParticuleAugmenteCompteur) {
  */
 TEST(UniversTest, AjouteParticuleProjetteEnDimension1) {
     std::vector<particule*> parts;
-    univers u(parts, {10.0}, 2.5, 1, 1.0, 1.0);
+    univers u(parts, {10.0}, 2.5, 1, 1.0, 1.0,0.0);
 
     auto* p = new particule(1, 0, 1.0,
                             vecteur(3.0, 4.0, 5.0),
@@ -149,7 +149,7 @@ TEST(UniversTest, AjouteParticuleProjetteEnDimension1) {
  */
 TEST(UniversTest, AjouteParticuleProjetteEnDimension2) {
     std::vector<particule*> parts;
-    univers u(parts, {10.0, 10.0}, 2.5, 2, 1.0, 1.0);
+    univers u(parts, {10.0, 10.0}, 2.5, 2, 1.0, 1.0,0.0);
 
     auto* p = new particule(1, 0, 1.0,
                             vecteur(3.0, 4.0, 5.0),

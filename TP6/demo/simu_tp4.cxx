@@ -69,11 +69,11 @@ std::string trouver_script_python() {
  */
 int main(){
 
-    char mode;
+    std::string mode;
     std::cout << "Choisir le mode : (t = txt, v = vtk legacy, x = vtu xml) : ";
     std::cin >> mode;
 
-    if (mode != 't' && mode != 'v' && mode != 'x') {
+    if (mode != "t" && mode != "v" && mode != "x") {
         std::cerr << "Mode invalide. Choisir 't', 'v' ou 'x'.\n";
         return EXIT_FAILURE;
     }
@@ -83,8 +83,8 @@ int main(){
     double sigma = 1.0;
     double epsilon = 5.0;
     double mass = 1.0;
-    double dt = 0.00005;
-    //double dt = 0.001;
+    //double dt = 0.00005;
+    double dt = 0.001;
     double rcut = 2.5 * sigma;
     int dim = 2;
     std::vector<double> Lds = {250.0, 150.0};
@@ -105,7 +105,7 @@ int main(){
     int N2 = 160*40;
 
     // Création de l'univers
-    univers uni(particules, Lds, rcut, dim, epsilon, sigma);
+    univers uni(particules, Lds, rcut, dim, epsilon, sigma,0.0);
 
     int id = 0;
     double largeur_carre = 39 * dist_entre_particules;
@@ -131,7 +131,7 @@ int main(){
     }
 
     std::ofstream file;
-    if (mode == 't') {
+    if (mode == "t") {
         std::filesystem::create_directories("frames");
         file.open("frames/frames.txt");
         if (!file.is_open()) {
@@ -140,11 +140,11 @@ int main(){
         }
     }
 
-    if (mode == 'v') {
+    if (mode == "v") {
     std::filesystem::create_directories("vtk_frames");
     }
 
-    if (mode == 'x') {
+    if (mode == "x") {
         std::filesystem::create_directories("vtu_frames");
     }
 
@@ -163,11 +163,11 @@ int main(){
         }
 
     if (frame % save_every == 0) {
-        if (mode == 't') {
+        if (mode == "t") {
             sauvegarde_frame_txt(file, uni, frame_id);
-        } else if (mode == 'v') {
+        } else if (mode == "v") {
             sauvegarde_frame_vtk(uni, frame_id, "vtk_frames");
-        } else if (mode == 'x') {
+        } else if (mode == "x") {
             sauvegarde_frame_vtu(uni, frame_id, "vtu_frames");
         }
         frame_id++;
@@ -179,7 +179,7 @@ int main(){
 
     std::cout << "Temps de simulation : " << elapsed.count() << " secondes\n";
 
-    if (mode == 't') {
+    if (mode == "t") {
         file.close();
 
         std::string script_python = trouver_script_python();
@@ -196,12 +196,12 @@ int main(){
         }
     }
 
-    if (mode == 'v') {
+    if (mode == "v") {
         ecrire_fichier_series_json(frame_id, dt, save_every, "vtk_frames", "vtk");
         std::cout << "Fichier de series genere : vtk_frames/animation.vtk.series\n";
     }
 
-    if (mode == 'x') {
+    if (mode == "x") {
         ecrire_fichier_series_json(frame_id, dt, save_every, "vtu_frames", "vtu");
         std::cout << "Fichier de series genere : vtu_frames/animation.vtk.series\n";
     }
