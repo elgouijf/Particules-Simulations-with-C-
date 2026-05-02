@@ -86,6 +86,8 @@ class univers {
 
         bool utiliser_potentiel_mur;
 
+        double energie_potentielle();
+
     public:
         /**
          * @brief Constructeur par défaut.
@@ -234,6 +236,10 @@ class univers {
         void setSigma(double sigma);
 
         double energie_cinetique() const;
+
+        double energie_potentielle() const;
+
+        double energie_mecanique() const;
 
         void setConditionsLimites(ConditionLimite xmin, ConditionLimite xmax,
                               ConditionLimite ymin, ConditionLimite ymax,

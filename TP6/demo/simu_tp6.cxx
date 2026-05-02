@@ -20,9 +20,9 @@
 using namespace std;
 
 int main() {
-    std::string mode;
-    std::cout << "Choisir le mode : (t = txt, v = vtk legacy, x = vtu xml) : ";
-    std::cin >> mode;
+    std::string mode = "x";
+    // std::cout << "Choisir le mode : (t = txt, v = vtk legacy, x = vtu xml) : ";
+    // std::cin >> mode;
 
     if (mode != "t" && mode != "v" && mode != "x") {
         std::cerr << "Mode invalide. Choisir 't', 'v' ou 'x'.\n";
@@ -36,7 +36,7 @@ int main() {
 
     double sigma   = 1.0;
     double epsilon = 1.0;
-    double masse   = 1.0;
+    double masse   = 2.0;
     double dt      = 0.0005;
     double rcut    = 2.5 * sigma;
     double G       = -12.0;
@@ -70,8 +70,8 @@ int main() {
     // ==========================
     // Pavé inférieur : N2 = 17227 = 161 * 107
     // ==========================
-    int N2x = 161;
-    int N2y = 107;
+    int N2x = 50;
+    int N2y = 345; // très proche de 17227 (pas assez de diviseurs pour affiner le pavé)
     int N2 = N2x * N2y;
 
     double largeur_pave = (N2x - 1) * dist_entre_particules;
@@ -84,7 +84,7 @@ int main() {
             double y = y0_pave + j * dist_entre_particules;
 
             uni.ajoute_particule(
-                new particule(id++, 2, masse, vecteur(x, y, 0.0), v_pave)
+                new particule(id++, 2, masse + 0.001, vecteur(x, y, 0.0), v_pave)
             );
         }
     }
@@ -96,7 +96,7 @@ int main() {
     int N1 = 0;
 
     double cx = Lds[0] / 2.0;
-    double cy = 155.0;
+    double cy = 135.0;
     double rayon_recherche = 20.0;
 
     std::vector<std::pair<double, vecteur>> candidats;
@@ -183,6 +183,7 @@ int main() {
             std::cout << "Frame " << frame << "/" << num_frames
                       << "  particules : " << uni.getNumParticules()
                       << "  Ec = " << uni.energie_cinetique()
+                      << "  Em = " << uni.energie_mecanique()
                       << "\n";
 
             if (activer_limiteur && frame > 0) {

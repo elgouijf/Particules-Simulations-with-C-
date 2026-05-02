@@ -69,9 +69,9 @@ std::string trouver_script_python() {
  */
 int main(){
 
-    std::string mode;
-    std::cout << "Choisir le mode : (t = txt, v = vtk legacy, x = vtu xml) : ";
-    std::cin >> mode;
+    std::string mode ="x";
+    // std::cout << "Choisir le mode : (t = txt, v = vtk legacy, x = vtu xml) : ";
+    // std::cin >> mode;
 
     if (mode != "t" && mode != "v" && mode != "x") {
         std::cerr << "Mode invalide. Choisir 't', 'v' ou 'x'.\n";
@@ -159,7 +159,8 @@ int main(){
         uni.evolue_particules(dt);
 
         if (frame % 1000 == 0) {
-            std::cout << "Frame " << frame << "/" << num_frames << "\n";
+            std::cout << "Frame " << frame << "/" << num_frames << "\n"
+            << "  Em = " << uni.energie_mecanique() << "\n";
         }
 
     if (frame % save_every == 0) {

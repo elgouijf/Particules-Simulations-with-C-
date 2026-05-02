@@ -251,6 +251,9 @@ double univers::energie_cinetique() const {
     double Ec = 0.0;
 
     for (const particule* p : particules) {
+        if (p->getMasse() < 2.0) {
+            continue;
+        }
         const vecteur& v = p->getVitesse();
         double v2 = v.getX()*v.getX() + v.getY()*v.getY() + v.getZ()*v.getZ();
         Ec += 0.5 * p->getMasse() * v2;
@@ -258,6 +261,54 @@ double univers::energie_cinetique() const {
 
     return Ec;
 }
+
+double univers::energie_potentielle() const {
+    double Ep = 0.0;
+
+    for (const particule* p : particules) {
+        if (p->getMasse() < 2.0){
+            continue;
+        }
+        double y = p->getPosition().getY();
+        double m = p->getMasse();
+        Ep += m * G * y;
+    }
+
+    double r_cut2 = r_cut * r_cut;
+
+    for (size_t i = 0; i < particules.size(); ++i) {
+        for (size_t j = i + 1; j < particules.size(); ++j) {
+            if (particules[i]->getMasse() < 2.0 || particules[j]->getMasse() < 2.0){
+                continue;
+            }
+            const vecteur& posi = particules[i]->getPosition();
+            const vecteur& posj = particules[j]->getPosition();
+            vecteur rij = posj - posi;
+            double dist2 = rij.norme2();
+
+            if (dist2 > r_cut2){
+                continue;
+            }
+            double r2 = dist2 + 1e-12;
+            double sr2 = (sigma * sigma) / r2;
+            double sr6 = sr2 * sr2 * sr2;
+
+            Ep += 4.0 * eps * (sr6 * sr6 - sr6);
+        }
+    }
+
+
+
+
+    return Ep;
+}
+
+
+double univers::energie_mecanique() const {
+    return energie_cinetique() + energie_potentielle();
+}   
+
+
 
 double univers::calcule_force_mur(double r) const {
     r = std::max(r, 1e-12);
