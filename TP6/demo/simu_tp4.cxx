@@ -84,8 +84,8 @@ int main(){
     double sigma = 1.0;
     double epsilon = 5.0;
     double mass = 1.0;
-    //double dt = 0.00005;
-    double dt = 0.001;
+    double dt = 0.00005;
+    //double dt = 0.001;
     double rcut = 2.5 * sigma;
     int dim = 2;
     std::vector<double> Lds = {250.0, 150.0};
@@ -108,12 +108,21 @@ int main(){
     // Création de l'univers
     univers uni(particules, Lds, rcut, dim, epsilon, sigma,0.0);
 
+    uni.setConditionsLimites(
+        ConditionLimite::Aucune,
+        ConditionLimite::Aucune,
+        ConditionLimite::Aucune,
+        ConditionLimite::Aucune,
+        ConditionLimite::Aucune,
+        ConditionLimite::Aucune
+    );
+
     int id = 0;
     double largeur_carre = 39 * dist_entre_particules;
     double largeur_rect = 159 * dist_entre_particules;
 
     // Sauvegarde d'une frame toutes les save_every itérations
-    int save_every = 100;
+    int save_every = 1000;
 
     // Création du carré supérieur
     for (int i = 0; i < N1; ++i) {
@@ -177,39 +186,32 @@ int main(){
     uni.calcule_forces();
 
     // Boucle de simulation
+
     for (int frame = 0; frame < num_frames; ++frame) {
         uni.evolue_particules(dt);
 
-        for (int frame = 0; frame < num_frames; ++frame) {
-            uni.evolue_particules(dt);
+        if (frame % 1000 == 0) {
+            double Ec = uni.energie_cinetique();
+            double Ep = uni.energie_potentielle();
+            double Em = Ec + Ep;
 
-            if (frame % 1000 == 0) {
-                double Ec = uni.energie_cinetique();
-                double Ep = uni.energie_potentielle();
-                double Em = Ec + Ep;
+            ecrire_energie(energy_file, frame, frame * dt, Ec, Ep, Em);
 
-                ecrire_energie(energy_file,
-                            frame,
-                            frame * dt,
-                            Ec,
-                            Ep,
-                            Em);
+            std::cout << "Frame " << frame << "/" << num_frames
+                    << "  Em = " << Em << "\n";
+        }
 
-                std::cout << "Frame " << frame << "/" << num_frames
-                        << "  Em = " << Em << "\n";
+        if (frame % save_every == 0) {
+            if (mode == "t") {
+                sauvegarde_frame_txt(file, uni, frame_id);
+            } else if (mode == "v") {
+                sauvegarde_frame_vtk(uni, frame_id, dossier_vtk.string());
+            } else if (mode == "x") {
+                sauvegarde_frame_vtu(uni, frame_id, dossier_vtu.string());
             }
-        }
 
-    if (frame % save_every == 0) {
-        if (mode == "t") {
-            sauvegarde_frame_txt(file, uni, frame_id);
-        } else if (mode == "v") {
-            sauvegarde_frame_vtk(uni, frame_id, dossier_vtk.string());
-        } else if (mode == "x") {
-            sauvegarde_frame_vtu(uni, frame_id, dossier_vtu.string());
+            frame_id++;
         }
-        frame_id++;
-    }
     }
 
     auto end = std::chrono::high_resolution_clock::now();

@@ -76,9 +76,9 @@ void particule::evolue(double dt){
  */
 void particule::avance_position_verlet(double dt) {
     if (masse == 0.0) return;
-
     force_old = force;
-    position = position + vitesse * dt + force * (0.5 * dt * dt / masse);
+    position = position + vitesse * dt + force_old * (0.5 * dt * dt / masse);
+    force = vecteur{};
 }
 
 /**

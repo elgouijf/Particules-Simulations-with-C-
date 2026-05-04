@@ -157,7 +157,7 @@ TEST(CelluleTest, GetterVoisinsNonConst) {
     cellule c;
     cellule voisin;
 
-    c.getVoisins().push_back(&voisin);
+    c.ajoute_voisin(&voisin);
 
     ASSERT_EQ(c.getVoisins().size(), 1);
     EXPECT_EQ(c.getVoisins()[0], &voisin);

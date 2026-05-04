@@ -5,6 +5,7 @@
  * @brief Types de conditions aux limites applicables sur les bords du domaine.
  */
 enum class ConditionLimite {
+    Aucune,
     Reflexive,
     Absorbante,
     Periodique

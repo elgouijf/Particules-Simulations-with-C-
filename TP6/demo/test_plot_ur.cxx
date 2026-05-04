@@ -74,10 +74,6 @@ int main() {
     std::cout << "Donnees generees.\n";
     std::cout << "Lancez le script Python correspondant depuis src/python_plot si necessaire.\n";
 
-    if (code != 0) {
-        std::cerr << "Erreur lors de l'execution de plot_ur.py\n";
-        return 1;
-    }
 
     return 0;
 }

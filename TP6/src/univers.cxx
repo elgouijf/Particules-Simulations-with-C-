@@ -389,15 +389,18 @@ void univers::ajoute_particule(particule* p) {
  */
 void univers::evolue_particules(double dt) {
 
-    // 1. update positions
+    // 1. Mise à jour des positions
     for (particule* p : particules) {
         p->avance_position_verlet(dt);
     }
 
-    // 2. rebuild cells
+    //corriger les particules sorties avant de reconstruire la grille
+    //applique_conditions_limites();
+
+    // 2. Reconstruire la grille après correction
     place_particules_dans_cellules();
 
-    // 3. recompute forces
+    // 3. Recalcul des forces
     calcule_forces();
 
     if (utiliser_potentiel_mur) {
@@ -406,12 +409,12 @@ void univers::evolue_particules(double dt) {
 
     applique_gravite();
 
-    // 4. update velocities
+    // 4. Mise à jour des vitesses
     for (particule* p : particules) {
         p->avance_vitesse_verlet(dt);
     }
 
-    // CONDITIONS LIMITES EN DERNIER
+    // Sécurité finale
     applique_conditions_limites();
 }
 
@@ -423,9 +426,6 @@ double univers::energie_cinetique() const {
     double Ec = 0.0;
 
     for (const particule* p : particules) {
-        if (p->getMasse() < 2.0) {
-            continue;
-        }
         const vecteur& v = p->getVitesse();
         double v2 = v.getX()*v.getX() + v.getY()*v.getY() + v.getZ()*v.getZ();
         Ec += 0.5 * p->getMasse() * v2;
@@ -441,40 +441,74 @@ double univers::energie_cinetique() const {
 double univers::energie_potentielle() const {
     double Ep = 0.0;
 
+    // Énergie potentielle de gravité
     for (const particule* p : particules) {
-        if (p->getMasse() < 2.0){
-            continue;
-        }
+
         double y = p->getPosition().getY();
         double m = p->getMasse();
         Ep += m * G * y;
     }
 
-    double r_cut2 = r_cut * r_cut;
+    // Énergie potentielle Lennard-Jones avec la grille de cellules
+    const double r_cut2 = r_cut * r_cut;
+    const double sigma2 = sigma * sigma;
 
-    for (size_t i = 0; i < particules.size(); ++i) {
-        for (size_t j = i + 1; j < particules.size(); ++j) {
-            if (particules[i]->getMasse() < 2.0 || particules[j]->getMasse() < 2.0){
-                continue;
+    for (const cellule& c : cellules) {
+        const auto& parts = c.getParticules();
+
+        for (const cellule* v : c.getVoisins()) {
+            if (v == &c) {
+                // Paires internes à la même cellule
+                for (size_t i = 0; i < parts.size(); ++i) {
+                    for (size_t j = i + 1; j < parts.size(); ++j) {
+                        const particule* pi = parts[i];
+                        const particule* pj = parts[j];
+
+
+                        /* vecteur rij = pj->getPosition() - pi->getPosition();
+                        double dist2 = rij.norme2() + 1e-12; */
+
+                        // optimisation: passage par composantes
+                        double rx = pj->getPosition().getX() - pi->getPosition().getX();
+                        double ry = pj->getPosition().getY() - pi->getPosition().getY();
+                        double rz = pj->getPosition().getZ() - pi->getPosition().getZ();
+                        double dist2 = rx*rx + ry*ry + rz*rz + 1e-12;
+
+                        if (dist2 > r_cut2) {
+                            continue;
+                        }
+
+                        double sr2 = sigma2 / dist2;
+                        double sr6 = sr2 * sr2 * sr2;
+
+                        Ep += 4.0 * eps * (sr6 * sr6 - sr6);
+                    }
+                }
+            } else {
+                // Paires entre deux cellules voisines distinctes
+                const auto& vois = v->getParticules();
+
+                for (const particule* pi : parts) {
+                    for (const particule* pj : vois) {
+
+                        double rx = pj->getPosition().getX() - pi->getPosition().getX();
+                        double ry = pj->getPosition().getY() - pi->getPosition().getY();
+                        double rz = pj->getPosition().getZ() - pi->getPosition().getZ();
+                        double dist2 = rx*rx + ry*ry + rz*rz + 1e-12;
+
+                        if (dist2 > r_cut2) {
+                            continue;
+                        }
+
+                        double sr2 = sigma2 / dist2;
+                        double sr6 = sr2 * sr2 * sr2;
+
+                        Ep += 4.0 * eps * (sr6 * sr6 - sr6);
+                    }
+                }
             }
-            const vecteur& posi = particules[i]->getPosition();
-            const vecteur& posj = particules[j]->getPosition();
-            vecteur rij = posj - posi;
-            double dist2 = rij.norme2();
-
-            if (dist2 > r_cut2){
-                continue;
-            }
-            double r2 = dist2 + 1e-12;
-            double sr2 = (sigma * sigma) / r2;
-            double sr6 = sr2 * sr2 * sr2;
-
-            Ep += 4.0 * eps * (sr6 * sr6 - sr6);
         }
     }
-
-
-
 
     return Ep;
 }
@@ -495,13 +529,10 @@ double univers::energie_mecanique() const {
 double univers::calcule_force_mur(double r) const {
     r = std::max(r, 1e-12);
 
-    const double s  = sigma / (2.0 * r);
-    const double s2 = s * s;
-    const double s6 = s2 * s2 * s2;
+    const double a = sigma / (2.0 * r);
+    const double a6 = a * a * a * a * a * a;
 
-    // Force associated with:
-    // just taking of the 1/2 so i can check something
-    return -24.0 * eps * (1.0 / 2*r) * s6 * (1.0 - 2.0 * s6);
+    return -24.0 * eps * (1.0 / (2.0 * r)) * a6 * (1.0 - 2.0 * a6);
 }
 
 
@@ -616,7 +647,7 @@ void univers::initialise_cellules() {
     cellules.resize(nb_total);
 
     for (cellule& c : cellules) {
-        c.getVoisins().reserve(nb_voisins_max);
+        c.reserveVoisins(nb_voisins_max);
     }
 
     if (dim == 1) {
@@ -717,6 +748,24 @@ void univers::setConditionsLimites(ConditionLimite cond_xmin, ConditionLimite co
 
 /** @brief Applique les conditions aux limites à toutes les particules. */
 void univers::applique_conditions_limites() {
+    const bool has_absorbante =
+        condl_xmin == ConditionLimite::Absorbante ||
+        condl_xmax == ConditionLimite::Absorbante ||
+        condl_ymin == ConditionLimite::Absorbante ||
+        condl_ymax == ConditionLimite::Absorbante ||
+        condl_zmin == ConditionLimite::Absorbante ||
+        condl_zmax == ConditionLimite::Absorbante;
+
+    // Cas fréquent : aucune condition absorbante.
+    // On applique juste réflexion / périodique sans reconstruire le vecteur.
+    if (!has_absorbante) {
+        for (particule* p : particules) {
+            applique_conditions_limites_particule(p);
+        }
+        return;
+    }
+
+    // Cas absorbant : certaines particules peuvent être supprimées.
     std::vector<particule*> survivantes;
     survivantes.reserve(particules.size());
 
@@ -728,7 +777,7 @@ void univers::applique_conditions_limites() {
         }
     }
 
-    particules = survivantes;
+    particules = std::move(survivantes);
     num_particules = static_cast<int>(particules.size());
 }
 
@@ -896,22 +945,15 @@ void univers::limite_vitesses(int N1, int N2) {
  * La force utilisée correspond à une interaction de type Lennard-Jones.
  */
 void univers::calcule_forces(){
-    // Remise à zéro des forces
-    for (particule* p : particules) {
-        p->setForce(vecteur{});
-    }
-
     const double r_cut2 = r_cut * r_cut;
     const double sigma2 = sigma * sigma;
     const double coeff = 24.0 * this->eps;
 
-    // Parcours des cellules
     for (const cellule& c : this->cellules) {
         const auto& parts = c.getParticules();
 
         for (const cellule* v : c.getVoisins()){
             if (v == &c){
-                // Interactions internes à une même cellule
                 for (size_t i = 0; i < parts.size(); ++i) {
                     for (size_t j = i + 1; j < parts.size(); ++j) {
 
@@ -921,28 +963,23 @@ void univers::calcule_forces(){
                         const vecteur& posi = pi->getPosition();
                         const vecteur& posj = pj->getPosition();
 
-                        vecteur rij = posj - posi;
-                        double dist2 = rij.norme2() + 1e-12;
+                        double rx = posj.getX() - posi.getX();
+                        double ry = posj.getY() - posi.getY();
+                        double rz = posj.getZ() - posi.getZ();
+                        double dist2 = rx*rx + ry*ry + rz*rz + 1e-12;
 
                         if (dist2 > r_cut2) continue;
 
                         double sr2 = sigma2 / dist2;
                         double sr6 = sr2 * sr2 * sr2;
-
                         double coeff_force = coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
 
-                        pi->ajouterForce(rij.getX() * coeff_force,
-                                        rij.getY() * coeff_force,
-                                        rij.getZ() * coeff_force);
-
-                        pj->ajouterForce(-rij.getX() * coeff_force,
-                                        -rij.getY() * coeff_force,
-                                        -rij.getZ() * coeff_force);
+                        pi->ajouterForce( rx * coeff_force,  ry * coeff_force,  rz * coeff_force);
+                        pj->ajouterForce(-rx * coeff_force, -ry * coeff_force, -rz * coeff_force);
                     }
                 }
             }
             else {
-                // Interactions entre deux cellules voisines distinctes
                 const auto& vois = v->getParticules();
 
                 for (particule* pi : parts) {
@@ -951,22 +988,19 @@ void univers::calcule_forces(){
                     for (particule* pj : vois) {
                         const vecteur& posj = pj->getPosition();
 
-                        vecteur rij = posj - posi;
-                        double dist2 = rij.norme2() + 1e-12;
+                        double rx = posj.getX() - posi.getX();
+                        double ry = posj.getY() - posi.getY();
+                        double rz = posj.getZ() - posi.getZ();
+                        double dist2 = rx*rx + ry*ry + rz*rz + 1e-12;
 
                         if (dist2 > r_cut2) continue;
 
                         double sr2 = sigma2 / dist2;
                         double sr6 = sr2 * sr2 * sr2;
-
                         double coeff_force = coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
 
-                        pi->ajouterForce(rij.getX() * coeff_force,
-                                        rij.getY() * coeff_force,
-                                        rij.getZ() * coeff_force);
-                        pj->ajouterForce(-rij.getX() * coeff_force,
-                                        -rij.getY() * coeff_force,
-                                        -rij.getZ() * coeff_force);
+                        pi->ajouterForce( rx * coeff_force,  ry * coeff_force,  rz * coeff_force);
+                        pj->ajouterForce(-rx * coeff_force, -ry * coeff_force, -rz * coeff_force);
                     }
                 }
             }
@@ -980,56 +1014,53 @@ void univers::calcule_forces(){
  */
 void univers::applique_potentiel_mur() {
     const double r_cut_mur = 0.5 * std::pow(2.0, 1.0 / 6.0) * sigma;
-    const double eps_pos   = 1e-6; // numerical guard for force evaluation only
+    const double eps_pos   = 1e-6;
+
+    // Déterminer quelles faces ont un potentiel de mur actif dès le début pour éviter de faire des tests à l'intérieur de la boucle.
+    const bool wall_ymin = (dim >= 2 && condl_ymin == ConditionLimite::Reflexive);
+    const bool wall_ymax = (dim >= 2 && condl_ymax == ConditionLimite::Reflexive);
+    const bool wall_xmin = (condl_xmin == ConditionLimite::Reflexive);
+    const bool wall_xmax = (condl_xmax == ConditionLimite::Reflexive);
+    const bool wall_zmin = (dim == 3 && condl_zmin == ConditionLimite::Reflexive);
+    const bool wall_zmax = (dim == 3 && condl_zmax == ConditionLimite::Reflexive);
 
     for (particule* p : particules) {
         const vecteur& pos = p->getPosition();
 
-        // Bottom wall: y = 0
-        if (dim >= 2 && condl_ymin == ConditionLimite::Reflexive) {
+        if (wall_ymin) {
             const double r = std::max(pos.getY(), eps_pos);
-            if (r < r_cut_mur) {
+            if (r < r_cut_mur)
                 p->ajouterForce(0.0, +calcule_force_mur(r), 0.0);
-            }
         }
 
-        // Top wall: y = Ly
-        if (dim >= 2 && condl_ymax == ConditionLimite::Reflexive) {
+        if (wall_ymax) {
             const double r = std::max(Lds[1] - pos.getY(), eps_pos);
-            if (r < r_cut_mur) {
+            if (r < r_cut_mur)
                 p->ajouterForce(0.0, -calcule_force_mur(r), 0.0);
-            }
         }
 
-        // Left wall: x = 0
-        if (condl_xmin == ConditionLimite::Reflexive) {
+        if (wall_xmin) {
             const double r = std::max(pos.getX(), eps_pos);
-            if (r < r_cut_mur) {
+            if (r < r_cut_mur)
                 p->ajouterForce(+calcule_force_mur(r), 0.0, 0.0);
-            }
         }
 
-        // Right wall: x = Lx
-        if (condl_xmax == ConditionLimite::Reflexive) {
+        if (wall_xmax) {
             const double r = std::max(Lds[0] - pos.getX(), eps_pos);
-            if (r < r_cut_mur) {
+            if (r < r_cut_mur)
                 p->ajouterForce(-calcule_force_mur(r), 0.0, 0.0);
-            }
         }
 
-        // z walls only in 3D
-        if (dim == 3 && condl_zmin == ConditionLimite::Reflexive) {
+        if (wall_zmin) {
             const double r = std::max(pos.getZ(), eps_pos);
-            if (r < r_cut_mur) {
+            if (r < r_cut_mur)
                 p->ajouterForce(0.0, 0.0, +calcule_force_mur(r));
-            }
         }
 
-        if (dim == 3 && condl_zmax == ConditionLimite::Reflexive) {
+        if (wall_zmax) {
             const double r = std::max(Lds[2] - pos.getZ(), eps_pos);
-            if (r < r_cut_mur) {
+            if (r < r_cut_mur)
                 p->ajouterForce(0.0, 0.0, -calcule_force_mur(r));
-            }
         }
     }
 }
@@ -1039,23 +1070,89 @@ void univers::applique_potentiel_mur() {
  * @param u Univers auquel appliquer la gravité.
  */
 void univers::applique_gravite() {
-    if (G == 0.0) return;
+    // Pas de direction verticale en 1D dans ce modèle.
+    if (G == 0.0 || dim == 1) return;
 
     for (particule* p : particules) {
-        if (dim == 1) {
-            // Pas de direction verticale en 1D dans ce modèle.
-            continue;
-        }
-
         if (dim == 2) {
             p->ajouterForce(0.0, p->getMasse() * G, 0.0);
         }
 
-        if (dim == 3) {
+        else {
             p->ajouterForce(0.0, 0.0, p->getMasse() * G);
         }
     }
 }
+
+/** @brief Convertit une condition limite en chaîne de caractères.
+ * @param c La condition limite à convertir.
+ * @return La chaîne de caractères correspondante.
+ */
+static const char* condition_to_string(ConditionLimite c) {
+    switch (c) {
+        case ConditionLimite::Aucune:
+            return "Aucune";
+        case ConditionLimite::Reflexive:
+            return "Reflexive";
+        case ConditionLimite::Absorbante:
+            return "Absorbante";
+        case ConditionLimite::Periodique:
+            return "Periodique";
+        default:
+            return "Inconnue";
+    }
+}
+
+
+/** @brief Affiche les conditions aux limites.
+ * @param u Univers dont on veut afficher les conditions limites.
+ */
+void univers::afficherConditionsLimites() const {
+    std::cout << "\n=== Conditions limites actuelles ===\n";
+    std::cout << "xmin : " << condition_to_string(condl_xmin) << "\n";
+    std::cout << "xmax : " << condition_to_string(condl_xmax) << "\n";
+    std::cout << "ymin : " << condition_to_string(condl_ymin) << "\n";
+    std::cout << "ymax : " << condition_to_string(condl_ymax) << "\n";
+    std::cout << "zmin : " << condition_to_string(condl_zmin) << "\n";
+    std::cout << "zmax : " << condition_to_string(condl_zmax) << "\n";
+    std::cout << "====================================\n\n";
+}
+
+
+void univers::debug_cellules() const {
+    size_t max_occ = 0;
+    int idx_max = -1;
+
+    for (size_t i = 0; i < cellules.size(); ++i) {
+        size_t occ = cellules[i].getParticules().size();
+        if (occ > max_occ) {
+            max_occ = occ;
+            idx_max = static_cast<int>(i);
+        }
+    }
+
+    int hors_x = 0;
+    int hors_y = 0;
+
+    for (const particule* p : particules) {
+        const vecteur& pos = p->getPosition();
+
+        if (pos.getX() < 0.0 || pos.getX() > Lds[0]) {
+            hors_x++;
+        }
+
+        if (dim >= 2 && (pos.getY() < 0.0 || pos.getY() > Lds[1])) {
+            hors_y++;
+        }
+    }
+
+    std::cout << "[DEBUG CELLULES] max_occ = " << max_occ
+              << " dans cellule " << idx_max
+              << " | hors_x = " << hors_x
+              << " | hors_y = " << hors_y
+              << "\n";
+}
+
 
 /**
  * @brief Affiche toutes les particules de l'univers.

@@ -88,3 +88,12 @@ const std::vector<particule*>& cellule::getParticules() const {
 const std::vector<cellule*>& cellule::getVoisins() const {
     return this->voisins;
 }
+
+
+/**
+ * @brief Réserve de la mémoire pour un nombre donné de voisins.
+ * @param n Nombre de voisins à réserver.
+ */
+void cellule::reserveVoisins(std::size_t n) {
+    voisins.reserve(n);
+}

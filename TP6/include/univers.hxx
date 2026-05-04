@@ -81,7 +81,7 @@ class univers {
         ConditionLimite condl_ymin;
 
         ConditionLimite condl_ymax;
-sk
+        
         ConditionLimite condl_zmin;
 
         ConditionLimite condl_zmax;
@@ -346,6 +346,12 @@ sk
         /** @brief Applique le potentiel de mur à toutes les particules.
          */
         void applique_potentiel_mur();
+
+        /** @brief Affiche les conditions aux limites.
+         */
+        void afficherConditionsLimites() const;
+
+        void debug_cellules() const;
 };
 
 /**

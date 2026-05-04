@@ -72,6 +72,12 @@ class cellule {
          * @return Référence constante vers le vecteur des voisins.
          */
         const std::vector<cellule*>& getVoisins() const;
+
+        /**
+         * @brief Réserve de la mémoire pour un nombre donné de voisins.
+         * @param n Nombre de voisins à réserver.
+         */
+        void reserveVoisins(std::size_t n);
 };
 
 #endif

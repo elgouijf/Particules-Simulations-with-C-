@@ -20,6 +20,19 @@
 
 using namespace std;
 
+ConditionLimite lire_condition(char c) {
+    switch (c) {
+        case 'r': return ConditionLimite::Reflexive;
+        case 'a': return ConditionLimite::Absorbante;
+        case 'p': return ConditionLimite::Periodique;
+        case 'z': return ConditionLimite::Aucune;
+        default:
+            std::cerr << "Condition inconnue, Reflexive par defaut.\n";
+            return ConditionLimite::Reflexive;
+    }
+}
+
+
 int main() {
     std::string mode;
     std::cout << "Choisir le mode : (t = txt, v = vtk legacy, x = vtu xml) : ";
@@ -33,6 +46,9 @@ int main() {
     // ==========================
     // Paramètres TP6 Q6
     // ==========================
+    int frame_debut_limiteur = 6000;
+    int periode_limiteur = 1000;          // appliquer tous les 1000 pas après ce début
+    int periode_debug_energie = 1000;     
     int dim = 2;
 
     double sigma   = 1.0;
@@ -57,27 +73,59 @@ int main() {
 
     univers uni(particules, Lds, rcut, dim, epsilon, sigma, G, utiliser_potentiel_mur);
 
+    char cxmin = 'r';
+    char cxmax = 'r';
+    
+    char cymin = 'r';
+    char cymax = 'r';
+
+    std::cout << "\nConditions limites possibles :\n";
+    std::cout << "  r = reflexive\n";
+    std::cout << "  a = absorbante\n";
+    std::cout << "  p = periodique\n";
+    std::cout << "  z = aucune\n";
+
+    std::cout << "Condition xmin [r/a/p/z] (defaut r) : ";
+    std::cin >> cxmin;
+
+    std::cout << "Condition xmax [r/a/p/z] (defaut r) : ";
+    std::cin >> cxmax;
+
+    std::cout << "Condition ymin [r/a/p/z] (defaut r) : ";
+    std::cin >> cymin;
+
+    std::cout << "Condition ymax [r/a/p/z] (defaut r) : ";
+    std::cin >> cymax;
+
     uni.setConditionsLimites(
-        ConditionLimite::Reflexive,
-        ConditionLimite::Reflexive,
-        ConditionLimite::Reflexive,
-        ConditionLimite::Reflexive,
-        ConditionLimite::Reflexive,
-        ConditionLimite::Reflexive
+        lire_condition(cxmin),
+        lire_condition(cxmax),
+        lire_condition(cymin),
+        lire_condition(cymax),
+        ConditionLimite::Reflexive, // zmin
+        ConditionLimite::Reflexive  // zmax
     );
 
+    std::cout << "\nConditions limites appliquees :\n";
+    uni.afficherConditionsLimites();
     int id = 0;
 
     // ==========================
     // Pavé inférieur : N2 = 17227 = 161 * 107
     // ==========================
-    int N2x = 50;
-    int N2y = 345; // très proche de 17227 (pas assez de diviseurs pour affiner le pavé)
+    double largeur_pave_voulue = 200.0;
+
+    int N2_cible = 17227;
+    int N2x = static_cast<int>(largeur_pave_voulue / dist_entre_particules) + 1;
+    int N2y = static_cast<int>(std::round(static_cast<double>(N2_cible) / N2x));
     int N2 = N2x * N2y;
 
     double largeur_pave = (N2x - 1) * dist_entre_particules;
+    double hauteur_pave = (N2y - 1) * dist_entre_particules;
+
     double x0_pave = 0.5 * (Lds[0] - largeur_pave);
     double y0_pave = 1.0;
+    double y_top_pave = y0_pave + hauteur_pave;
 
     for (int j = 0; j < N2y; ++j) {
         for (int i = 0; i < N2x; ++i) {
@@ -99,7 +147,7 @@ int main() {
     int N1 = 0;
 
     double cx = Lds[0] / 2.0;
-    double cy = 135.0;
+    double cy = y_top_pave + 25.0;
     double rayon_recherche = 20.0;
 
     std::vector<std::pair<double, vecteur>> candidats;
@@ -196,25 +244,29 @@ int main() {
     for (int frame = 0; frame < num_frames; ++frame) {
         uni.evolue_particules(dt);
 
-        if (frame % 1000 == 0) {
+        // Limiteur indépendant du debug/énergie
+        if (activer_limiteur &&
+            frame >= frame_debut_limiteur &&
+            (frame - frame_debut_limiteur) % periode_limiteur == 0) {
+            
+            uni.limite_vitesses(N1, N2);
+        }
+
+        // Debug + énergie indépendants
+        if (frame % periode_debug_energie == 0) {
+/*             uni.debug_cellules();
+
             double Ec = uni.energie_cinetique();
             double Ep = uni.energie_potentielle();
             double Em = Ec + Ep;
 
-            ecrire_energie(energy_file,
-                        frame,
-                        frame * dt,
-                        Ec,
-                        Ep,
-                        Em);
+            ecrire_energie(energy_file, frame, frame * dt, Ec, Ep, Em);
 
             std::cout << "Frame " << frame << "/" << num_frames
-                    << "  Em = " << Em << "\n";
-
-            if (activer_limiteur && frame > 0) {
-                uni.limite_vitesses(N1, N2);
-            }
+                    << "  Em = " << Em << "\n"; */
+            std::cout << "Frame " << frame << "/" << num_frames << "\n";
         }
+
 
         if (frame % save_every == 0) {
             if (mode == "t") {
