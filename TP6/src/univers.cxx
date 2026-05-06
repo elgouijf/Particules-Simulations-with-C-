@@ -1,6 +1,7 @@
 #include "univers.hxx"
 #include <algorithm>
 #include <cmath>
+#include <omp.h>
 
 /**
  * @brief Construit un univers par défaut.
@@ -281,6 +282,10 @@ univers& univers::operator=(univers&& other) noexcept {
     return *this;
 }
 
+void univers::reserveParticules(size_t n) {
+    particules.reserve(n);
+}
+
 
 /** @brief Retourne l'ensemble des particules.
  * @return Référence constante vers le vecteur de particules.
@@ -373,7 +378,9 @@ void univers::ajoute_particule(particule* p) {
     this->particules.push_back(p);
     this->num_particules++;
 
-    place_particule_dans_cellule(p);
+    cellule* c = place_particule_dans_cellule(p);
+    if (c->getParticules().size() == 1)
+        cellules_occupees.push_back(c);
 }
 
 /**
@@ -389,33 +396,23 @@ void univers::ajoute_particule(particule* p) {
  */
 void univers::evolue_particules(double dt) {
 
-    // 1. Mise à jour des positions
-    for (particule* p : particules) {
+    for (particule* p : particules)
         p->avance_position_verlet(dt);
-    }
 
-    //corriger les particules sorties avant de reconstruire la grille
-    //applique_conditions_limites();
-
-    // 2. Reconstruire la grille après correction
     place_particules_dans_cellules();
 
-    // 3. Recalcul des forces
     calcule_forces();
 
-    if (utiliser_potentiel_mur) {
+    if (!aucune_cond_limite && utiliser_potentiel_mur)
         applique_potentiel_mur();
-    }
 
     applique_gravite();
 
-    // 4. Mise à jour des vitesses
-    for (particule* p : particules) {
+    for (particule* p : particules)
         p->avance_vitesse_verlet(dt);
-    }
 
-    // Sécurité finale
-    applique_conditions_limites();
+    if (!aucune_cond_limite)
+        applique_conditions_limites();
 }
 
 
@@ -453,11 +450,10 @@ double univers::energie_potentielle() const {
     const double r_cut2 = r_cut * r_cut;
     const double sigma2 = sigma * sigma;
 
-    for (const cellule& c : cellules) {
-        const auto& parts = c.getParticules();
-
-        for (const cellule* v : c.getVoisins()) {
-            if (v == &c) {
+    for (const cellule* c : cellules_occupees) {
+        const auto& parts = c->getParticules();
+        for (const cellule* v : c->getVoisins()) {
+            if (v == c) {
                 // Paires internes à la même cellule
                 for (size_t i = 0; i < parts.size(); ++i) {
                     for (size_t j = i + 1; j < parts.size(); ++j) {
@@ -556,30 +552,30 @@ void univers::vide_cellules() {
  *
  * @param p Particule à placer.
  */
-void univers::place_particule_dans_cellule(particule* p) {
+cellule* univers::place_particule_dans_cellule(particule* p) {
     const vecteur& pos = p->getPosition();
 
     int ix = static_cast<int>(pos.getX() / r_cut);
     if (ix < 0) ix = 0;
-    if (ix >= ncd[0]) ix = ncd[0] - 1;
+    else if (ix >= ncd[0]) ix = ncd[0] - 1;
 
-    int iy = 0;
-    int iz = 0;
+    int iy = 0, iz = 0;
 
     if (dim >= 2) {
         iy = static_cast<int>(pos.getY() / r_cut);
         if (iy < 0) iy = 0;
-        if (iy >= ncd[1]) iy = ncd[1] - 1;
+        else if (iy >= ncd[1]) iy = ncd[1] - 1;
     }
 
     if (dim == 3) {
         iz = static_cast<int>(pos.getZ() / r_cut);
         if (iz < 0) iz = 0;
-        if (iz >= ncd[2]) iz = ncd[2] - 1;
+        else if (iz >= ncd[2]) iz = ncd[2] - 1;
     }
 
-    int idx = indice_cellule(ix, iy, iz);
-    cellules[idx].ajoute_particule(p);
+    cellule* c = &cellules[indice_cellule(ix, iy, iz)];
+    c->ajoute_particule(p);
+    return c;
 }
 
 /**
@@ -589,10 +585,14 @@ void univers::place_particule_dans_cellule(particule* p) {
  * est replacée à partir de sa position actuelle.
  */
 void univers::place_particules_dans_cellules() {
-    vide_cellules();
+    for (cellule* c : cellules_occupees)
+        c->vide();
+    cellules_occupees.clear();
 
     for (particule* p : particules) {
-        place_particule_dans_cellule(p);
+        cellule* c = place_particule_dans_cellule(p);
+        if (c->getParticules().size() == 1){ // == 1 pour éviter les doublons dans cellules_occupees
+            cellules_occupees.push_back(c);}
     }
 }
 
@@ -743,6 +743,13 @@ void univers::setConditionsLimites(ConditionLimite cond_xmin, ConditionLimite co
     this->condl_ymax = cond_ymax;
     this->condl_zmin = cond_zmin;
     this->condl_zmax = cond_zmax;
+
+    this->aucune_cond_limite = (cond_xmin == ConditionLimite::Aucune &&
+                 cond_xmax == ConditionLimite::Aucune &&
+                 cond_ymin == ConditionLimite::Aucune &&
+                 cond_ymax == ConditionLimite::Aucune &&
+                 cond_zmin == ConditionLimite::Aucune &&
+                 cond_zmax == ConditionLimite::Aucune);
 }
 
 
@@ -949,11 +956,11 @@ void univers::calcule_forces(){
     const double sigma2 = sigma * sigma;
     const double coeff = 24.0 * this->eps;
 
-    for (const cellule& c : this->cellules) {
-        const auto& parts = c.getParticules();
+    for (cellule* c : cellules_occupees) {
+        const auto& parts = c->getParticules();
 
-        for (const cellule* v : c.getVoisins()){
-            if (v == &c){
+        for (const cellule* v : c->getVoisins()) {
+            if (v == c) {
                 for (size_t i = 0; i < parts.size(); ++i) {
                     for (size_t j = i + 1; j < parts.size(); ++j) {
 
@@ -981,6 +988,7 @@ void univers::calcule_forces(){
             }
             else {
                 const auto& vois = v->getParticules();
+                if (vois.empty()) continue;
 
                 for (particule* pi : parts) {
                     const vecteur& posi = pi->getPosition();

@@ -63,6 +63,11 @@ class univers {
         std::vector<cellule> cellules;
 
         /**
+         * @brief Vecteur des cellules occupées.
+         */
+        std::vector<cellule*> cellules_occupees;
+
+        /**
          * @brief Paramètre epsilon du potentiel de Lennard-Jones.
          */
         double eps;
@@ -72,8 +77,7 @@ class univers {
          */
         double sigma;
 
-        /** @brief Conditions aux limites selon chaque direction. */
-
+  
         ConditionLimite condl_xmin;
 
         ConditionLimite condl_xmax;
@@ -93,6 +97,11 @@ class univers {
 
         /** @brief Copie les paramètres d'un autre univers. */
         void copier_parametres_depuis(const univers& other);
+
+        /** @brief Indique si aucune condition limite n'est appliquée. */
+        bool aucune_cond_limite = false;
+
+        
 
     public:
         /**
@@ -201,8 +210,9 @@ class univers {
         /**
          * @brief Place une particule dans la cellule correspondant à sa position.
          * @param p Pointeur vers la particule à placer.
+         * @return Pointeur vers la cellule dans laquelle la particule a été placée.
          */
-        void place_particule_dans_cellule(particule* p);
+        cellule* place_particule_dans_cellule(particule* p);
 
         /**
          * @brief Replace toutes les particules dans la grille de cellules.
@@ -352,6 +362,8 @@ class univers {
         void afficherConditionsLimites() const;
 
         void debug_cellules() const;
+
+        void reserveParticules(size_t n);
 };
 
 /**

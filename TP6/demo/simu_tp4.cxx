@@ -108,6 +108,8 @@ int main(){
     // Création de l'univers
     univers uni(particules, Lds, rcut, dim, epsilon, sigma,0.0);
 
+    uni.reserveParticules(N1 + N2); // optimisation : éviter les reallocations dynamiques lors de l'ajout des particules
+
     uni.setConditionsLimites(
         ConditionLimite::Aucune,
         ConditionLimite::Aucune,
@@ -198,7 +200,8 @@ int main(){
             ecrire_energie(energy_file, frame, frame * dt, Ec, Ep, Em);
 
             std::cout << "Frame " << frame << "/" << num_frames
-                    << "  Em = " << Em << "\n";
+                    << "  Em = " << Em << "\n"; 
+            
         }
 
         if (frame % save_every == 0) {
