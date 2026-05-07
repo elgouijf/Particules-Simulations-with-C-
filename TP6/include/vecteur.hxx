@@ -5,6 +5,7 @@
 #include <cassert>
 #include <stdexcept>
 #include <ostream>
+#include "exceptions.hxx"
 
 class vecteur {
 
@@ -158,24 +159,21 @@ public:
         if (index == 1) return y;
         if (index == 2) return z;
 
-        throw std::out_of_range("Index out of range for vecteur");
+    throw ParametreInvalide("Index invalide pour vecteur");
     }
-
     /**
      * @brief Accès en écriture à une composante.
      *
      * @param index Indice de composante.
      * @return Référence vers la composante.
      */
-    inline double& operator[](int index) noexcept {
-        assert(index >= 0 && index < 3);
-
+    inline double& operator[](int index) {
         if (index == 0) return x;
         if (index == 1) return y;
+        if (index == 2) return z;
 
-        return z;
+    throw ParametreInvalide("Index invalide pour vecteur");
     }
-
     /**
     * @brief Ajoute directement des composantes au vecteur courant.
     *

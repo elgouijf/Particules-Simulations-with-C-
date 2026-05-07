@@ -1,7 +1,8 @@
 #include "univers.hxx"
+#include "exceptions.hxx"
 #include <algorithm>
 #include <cmath>
-#include <omp.h>
+#include "omp.h"
 
 /**
  * @brief Construit un univers par défaut.
@@ -83,15 +84,24 @@ univers::univers(std::vector<particule*>& v,
     this->condl_zmax = ConditionLimite::Reflexive;
 
     if (dim < 1 || dim > 3) {
-        std::cerr << "Dimension must be between 1 and 3. Setting to 3." << std::endl;
-        this->dim = 3;
+           throw ParametreInvalide("La dimension doit être 1,2 ou 3");
     } else {
         this->dim = dim;
     }
 
+    if (r_cut <= 0.0) {
+        throw ParametreInvalide("La distance de coupure doit être positive");
+    }
+    if (eps <= 0.0) {
+        throw ParametreInvalide("Le paramètre epsilon doit être positif");
+    }
+    if (sigma <= 0.0) {
+        throw ParametreInvalide("Le paramètre sigma doit être positif");
+    }
+
     if (Lds.size() != static_cast<size_t>(this->dim)) {
-        std::cerr << "Size of Lds must match the dimension. Setting to default values." << std::endl;
-        this->Lds = std::vector<double>(this->dim, 10.0);
+        throw ParametreInvalide("La taille de Lds doit correspondre à la dimension de l'univers");
+        // this->Lds = std::vector<double>(this->dim, 10.0);
     } else {
         this->Lds = Lds;
     }
@@ -474,10 +484,14 @@ void univers::ajoute_particule(particule* p) {
  */
 void univers::evolue_particules(double dt) {
 
-    for (particule* p : particules) {
-        p->avance_position_verlet(dt);
+    if (dt <= 0.0) {
+        throw ParametreInvalide("Le pas de temps doit être positif");
     }
-    //place_particules_dans_cellules();
+
+    for (particule* p : particules){
+        p->avance_position_verlet(dt);
+        p->verifie_etat_num();
+    }
 
     //calcule_forces();
     if (!utiliser_liste_verlet) {
@@ -486,14 +500,15 @@ void univers::evolue_particules(double dt) {
 
     calcule_forces();
 
-    if (utiliser_potentiel_mur) {
+    if (!aucune_cond_limite && utiliser_potentiel_mur){
         applique_potentiel_mur();
     }
 
     applique_gravite();
 
-    for (particule* p : particules) {
+    for (particule* p : particules){
         p->avance_vitesse_verlet(dt);
+        p->verifie_etat_num();
     }
 
     if (!aucune_cond_limite) {
@@ -504,8 +519,6 @@ void univers::evolue_particules(double dt) {
         }
     }
 }
-
-
 bool univers::doit_reconstruire_liste_verlet() const {
     if (!verlet_valide) return true;
 
@@ -1150,6 +1163,8 @@ bool univers::applique_conditions_limites_particule(particule* p) {
     p->setPosition(pos);
     p->setVitesse(vit);
 
+    p->verifie_etat_num();
+
     return garder;
 }
 
@@ -1398,7 +1413,6 @@ void univers::calcule_forces_omp() {
     }
 }
 
-
 void univers::calcule_forces_verlet_omp() {
     const int N = static_cast<int>(particules.size());
     if (N == 0) return;
@@ -1425,7 +1439,13 @@ void univers::calcule_forces_verlet_omp() {
             if (dist2 > r_cut2) continue;
             const double sr2 = sigma2 / dist2;
             const double sr6 = sr2 * sr2 * sr2;
+            if (!std::isfinite(sr6)) {
+                throw ErreurNumerique("sr6 non fini : " );
+            }
             const double f   = coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
+            if (!std::isfinite(f)) {
+                throw ErreurNumerique("Force non fini : " );
+            }
             const double fx = rx*f, fy = ry*f, fz = rz*f;
             pi->ajouterForce( fx,  fy,  fz);
             pj->ajouterForce(-fx, -fy, -fz);
@@ -1455,7 +1475,13 @@ void univers::calcule_forces_verlet_omp() {
             if (dist2 > r_cut2) continue;
             const double sr2 = sigma2 / dist2;
             const double sr6 = sr2 * sr2 * sr2;
+            if (!std::isfinite(sr6)) {
+                throw ErreurNumerique("sr6 non fini : " );
+            }
             const double f   = coeff * sr6 * (1.0 - 2.0 * sr6) / dist2;
+            if (!std::isfinite(f)) {
+                throw ErreurNumerique("Force non fini : " );
+            }
             const double fx = rx*f, fy = ry*f, fz = rz*f;
             omp_fx[base + idi] += fx;
             omp_fx[base + idj] -= fx;
@@ -1582,6 +1608,7 @@ void univers::applique_potentiel_mur() {
             if (r < r_cut_mur)
                 p->ajouterForce(0.0, 0.0, -calcule_force_mur(r));
         }
+        p->verifie_etat_num();
     }
 }
 
@@ -1592,12 +1619,15 @@ void univers::applique_gravite() {
     if (G == 0.0 || dim == 1) return;  // 1D : no vertical direction
 
     for (particule* p : particules) {
-        if (dim == 2)
+        if (dim == 2){
             p->ajouterForce(0.0, p->getMasse() * G, 0.0);
-        else
+        } else {
             p->ajouterForce(0.0, 0.0, p->getMasse() * G);
+        } 
+        p->verifie_etat_num();
     }
 }
+
 
 /** @brief Convertit une condition limite en chaîne de caractères.
  * @param c La condition limite à convertir.

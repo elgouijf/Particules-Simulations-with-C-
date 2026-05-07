@@ -27,7 +27,7 @@
 #include "univers.hxx"
 #include "io.hxx"
 #include "output_paths.hxx"
-
+#include "exceptions.hxx"
 
 
 
@@ -68,15 +68,14 @@ std::string trouver_script_python() {
  * @return EXIT_SUCCESS si la simulation s'exécute correctement,
  *         EXIT_FAILURE sinon.
  */
-int main(){
+int main_simulation(){
 
     std::string mode;
     std::cout << "Choisir le mode : (t = txt, v = vtk legacy, x = vtu xml) : ";
     std::cin >> mode;
 
     if (mode != "t" && mode != "v" && mode != "x") {
-        std::cerr << "Mode invalide. Choisir 't', 'v' ou 'x'.\n";
-        return EXIT_FAILURE;
+        throw ParametreInvalide("Mode invalide. Choisir 't', 'v' ou 'x'.");
     }
 
 
@@ -151,9 +150,7 @@ int main(){
     std::ofstream energy_file(dossier_energy / "energie_tp4.csv");
 
     if (!energy_file.is_open()) {
-        std::cerr << "Impossible d'ouvrir "
-                << dossier_energy / "energie_tp4.csv" << "\n";
-        return EXIT_FAILURE;
+        throw ErreurFichier("Impossible d'ouvrir " + (dossier_energy / "energie_tp4.csv").string());
     }
 
     ecrire_entete_energie(energy_file);
@@ -170,9 +167,9 @@ int main(){
         file.open(dossier_frames / "frames.txt");
 
         if (!file.is_open()) {
-            std::cerr << "Impossible d'ouvrir "
-                    << dossier_frames / "frames.txt" << "\n";
-            return EXIT_FAILURE;
+            // std::cerr << "Impossible d'ouvrir "
+            //         << dossier_frames / "frames.txt" << "\n";    
+            throw ErreurFichier("Impossible d'ouvrir " + (dossier_frames / "frames.txt").string());
         }
     }
 
@@ -202,8 +199,7 @@ int main(){
             ecrire_energie(energy_file, frame, frame * dt, Ec, Ep, Em);
 
             std::cout << "Frame " << frame << "/" << num_frames
-                    << "  Em = " << Em << "\n"; 
-            std::cout << "Frame " << frame << "/" << num_frames <<  "\n"; 
+                    << "  Em = " << Em << "\n";            
             
         } 
 
@@ -257,4 +253,19 @@ int main(){
 
     energy_file.close();
     return EXIT_SUCCESS;
+}
+
+int main(){
+    try{
+      return main_simulation();
+    } catch(const ParametreInvalide& p){
+        std::cerr << "Erreur de parametre : " << p.what() << "\n";
+        return EXIT_FAILURE;
+    } catch(const ErreurFichier& e){
+        std::cerr << "Erreur de fichier : " << e.what() << "\n";
+        return EXIT_FAILURE;
+    } catch(const ErreurNumerique& n){
+        std::cerr << "Erreur numerique : " << n.what() << "\n";
+        return EXIT_FAILURE;
+    }
 }

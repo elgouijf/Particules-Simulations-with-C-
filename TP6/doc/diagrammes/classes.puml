@@ -1,83 +1,117 @@
 @startuml
 
-class Simulation {
-  +modeSortie
-  +dt
-  +duration
-  +save_every
-  +executer()
-}
+skinparam classAttributeIconSize 0
 
 class Univers {
-  -particules
-  -cellules
-  -num_particules
-  -dim
-  -Lds
-  -r_cut
-  -eps
-  -sigma
-  +ajoute_particule(p)
-  +calcule_forces()
-  +evolue_particules(dt)
-  +place_particules_dans_cellules()
-  +energie_cinetique()
-}
+    - particules : vector<Particule*>
+    - cellules : vector<Cellule>
 
-class Cellule {
-  -particules
-  -voisins
-  +ajoute_particule(p)
-  +ajoute_voisin(c)
-  +vide()
+    - num_particules : int
+    - r_cut : double
+    - eps : double
+    - sigma : double
+    - G : double
+
+    - dim : int
+    - Lds : vector<double>
+    - ncd : vector<int>
+
+    - utiliser_potentiel_mur : bool
+
+    - condl_xmin : ConditionLimite
+    - condl_xmax : ConditionLimite
+    - condl_ymin : ConditionLimite
+    - condl_ymax : ConditionLimite
+    - condl_zmin : ConditionLimite
+    - condl_zmax : ConditionLimite
+
+    + Univers(...)
+    + ~Univers()
+
+    + ajoute_particule(p)
+    + evolue_particules(dt)
+
+    + calcule_forces()
+    + calcule_forces_sequentiel()
+
+    + applique_gravite()
+    + applique_potentiel_mur()
+
+    + applique_conditions_limites()
+    + applique_conditions_limites_particule(p)
+
+    + limite_vitesses(N1, N2)
+
+    + energie_cinetique()
+    + energie_potentielle()
+    + energie_mecanique()
+
+    + initialise_cellules()
+    + place_particules_dans_cellules()
+
+    + afficherConditionsLimites()
+    + debug_cellules()
+
+    + calcule_force_mur(r)
+
+    + setConditionsLimites(...)
 }
 
 class Particule {
-  -id
-  -type
-  -masse
-  -position
-  -vitesse
-  -force
-  -force_old
-  +evolue(dt)
-  +avance_position_verlet(dt)
-  +avance_vitesse_verlet(dt)
-  +ajouterForce(...)
+    - id : int
+    - type : int
+    - masse : double
+
+    - position : Vecteur
+    - vitesse : Vecteur
+    - force : Vecteur
+    - force_old : Vecteur
+
+    + avance_position_verlet(dt)
+    + avance_vitesse_verlet(dt)
+
+    + ajouterForce(fx, fy, fz)
+    + ajouterForce(vecteur)
+
+    + verifie_etat_num()
 }
 
 class Vecteur {
-  -x
-  -y
-  -z
-  +norme()
-  +operator+()
-  +operator-()
-  +operator*()
-  +operator/()
+    - x : double
+    - y : double
+    - z : double
 }
 
-class IO {
-  +sauvegarde_frame_txt(...)
-  +sauvegarde_frame_vtk(...)
-  +sauvegarde_frame_vtu(...)
-  +ecrire_fichier_series_json(...)
+class Cellule {
+    - particules : vector<Particule*>
+    - voisins : vector<Cellule*>
+
+    + ajoute_particule(p)
+    + ajoute_voisin(c)
+    + vide()
 }
 
-Simulation --> Univers : utilise
-Simulation --> IO : utilise
+enum ConditionLimite {
+    Reflexive
+    Absorbante
+    Periodique
+    Aucune
+}
 
-Univers "1" *-- "0..*" Particule : contient
-Univers "1" *-- "1..*" Cellule : contient
+class ParametreInvalide
+class ErreurFichier
+class ErreurNumerique
 
-Cellule "1" --> "0..*" Particule : référence
-Cellule "1" --> "0..*" Cellule : voisins
+ParametreInvalide --|> invalid_argument
+ErreurFichier --|> runtime_error
+ErreurNumerique --|> runtime_error
 
-Particule --> Vecteur : position
-Particule --> Vecteur : vitesse
-Particule --> Vecteur : force
-Particule --> Vecteur : force_old
+Univers *-- Particule
+Univers *-- Cellule
+Particule *-- Vecteur
+Univers --> ConditionLimite
 
-IO --> Univers : lit les données
+Cellule o-- Particule
+Cellule --> Cellule
 
 @enduml

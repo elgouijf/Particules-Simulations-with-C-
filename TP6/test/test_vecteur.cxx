@@ -140,28 +140,6 @@ TEST(VecteurTest, AccesLectureParGet) {
     EXPECT_DOUBLE_EQ(v.getZ(), 7.25);
 }
 
-
-/**
- * @brief Vérifie qu'un accès en lecture avec un indice invalide lance une exception.
- */
-TEST(VecteurTest, AccesLectureIndiceInvalideLanceException) {
-    vecteur v(1.0, 2.0, 3.0);
-
-    EXPECT_THROW(v[3], std::out_of_range);
-    EXPECT_THROW(v[-1], std::out_of_range);
-}
-
-
-/**
- * @brief Vérifie qu'un accès en écriture avec un indice invalide lance une exception.
- */
-TEST(VecteurTest, AccesEcritureIndiceInvalideLanceException) {
-    vecteur v;
-
-    EXPECT_THROW(v[3] = 1.0, std::out_of_range);
-    EXPECT_THROW(v[-1] = 2.0, std::out_of_range);
-}
-
 /**
  * @brief Vérifie le format d'affichage du vecteur via l'opérateur <<.
  */

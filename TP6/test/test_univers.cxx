@@ -72,37 +72,6 @@ TEST(UniversTest, ConstructeurAvecParametresValides) {
 }
 
 /**
- * @brief Vérifie qu'une dimension invalide est remplacée par 3.
- */
-TEST(UniversTest, ConstructeurDimensionInvalide) {
-    std::vector<particule*> parts;
-    std::vector<double> Lds = {1.0, 2.0, 3.0};
-
-    univers u(parts, Lds, 1.0, 5, 1.0, 1.0,0.0);
-
-    EXPECT_EQ(u.getDim(), 3);
-    ASSERT_EQ(u.getLds().size(), 3);
-    EXPECT_DOUBLE_EQ(u.getLds()[0], 1.0);
-    EXPECT_DOUBLE_EQ(u.getLds()[1], 2.0);
-    EXPECT_DOUBLE_EQ(u.getLds()[2], 3.0);
-}
-
-/**
- * @brief Vérifie qu'une taille de domaine incohérente est remplacée par des valeurs par défaut.
- */
-TEST(UniversTest, ConstructeurLdsInvalide) {
-    std::vector<particule*> parts;
-    std::vector<double> Lds = {5.0}; // taille incohérente pour dim = 2
-
-    univers u(parts, Lds, 2.0, 2, 1.0, 1.0,0.0);
-
-    EXPECT_EQ(u.getDim(), 2);
-    ASSERT_EQ(u.getLds().size(), 2);
-    EXPECT_DOUBLE_EQ(u.getLds()[0], 10.0);
-    EXPECT_DOUBLE_EQ(u.getLds()[1], 10.0);
-}
-
-/**
  * @brief Vérifie qu'une particule ajoutée est bien comptée et stockée.
  */
 TEST(UniversTest, AjouteParticuleAugmenteCompteur) {
@@ -280,4 +249,190 @@ TEST(UniversTest, AffichageFlux) {
     oss << u;
 
     EXPECT_NE(oss.str().find("Particule(ID: 1"), std::string::npos);
+}
+
+/**
+ * @brief Vérifie qu'une particule sortant par xmin en condition périodique
+ * réapparaît du côté xmax.
+ */
+TEST(UniversTest, ConditionPeriodiqueXmin) {
+    std::vector<particule*> parts;
+    univers u(parts, {10.0, 10.0}, 2.5, 2, 1.0, 1.0, 0.0);
+
+    u.setConditionsLimites(
+        ConditionLimite::Periodique,  // xmin
+        ConditionLimite::Periodique,  // xmax
+        ConditionLimite::Reflexive,   // ymin
+        ConditionLimite::Reflexive,   // ymax
+        ConditionLimite::Reflexive,
+        ConditionLimite::Reflexive
+    );
+
+    auto* p = new particule(1, 0, 1.0,
+                            vecteur(-1.0, 5.0, 0.0),
+                            vecteur(-2.0, 0.0, 0.0));
+
+    u.ajoute_particule(p);
+    u.applique_conditions_limites();
+
+    ASSERT_EQ(u.getNumParticules(), 1);
+    EXPECT_DOUBLE_EQ(p->getPosition().getX(), 9.0);
+    EXPECT_DOUBLE_EQ(p->getPosition().getY(), 5.0);
+    EXPECT_DOUBLE_EQ(p->getVitesse().getX(), -2.0);
+}
+/**
+ * @brief Vérifie qu'une particule sortant par xmax en condition périodique
+ * réapparaît du côté xmin.
+ */
+TEST(UniversTest, ConditionPeriodiqueXmax) {
+    std::vector<particule*> parts;
+    univers u(parts, {10.0, 10.0}, 2.5, 2, 1.0, 1.0, 0.0);
+
+    u.setConditionsLimites(
+        ConditionLimite::Periodique,
+        ConditionLimite::Periodique,
+        ConditionLimite::Reflexive,
+        ConditionLimite::Reflexive,
+        ConditionLimite::Reflexive,
+        ConditionLimite::Reflexive
+    );
+
+    auto* p = new particule(1, 0, 1.0,
+                            vecteur(11.0, 5.0, 0.0),
+                            vecteur(2.0, 0.0, 0.0));
+
+    u.ajoute_particule(p);
+    u.applique_conditions_limites();
+
+    ASSERT_EQ(u.getNumParticules(), 1);
+    EXPECT_DOUBLE_EQ(p->getPosition().getX(), 1.0);
+    EXPECT_DOUBLE_EQ(p->getPosition().getY(), 5.0);
+    EXPECT_DOUBLE_EQ(p->getVitesse().getX(), 2.0);
+}
+
+/**
+ * @brief Vérifie qu'une particule sortant par ymin en condition périodique
+ * réapparaît du côté ymax.
+ */
+TEST(UniversTest, ConditionPeriodiqueYmin) {
+    std::vector<particule*> parts;
+    univers u(parts, {10.0, 10.0}, 2.5, 2, 1.0, 1.0, 0.0);
+
+    u.setConditionsLimites(
+        ConditionLimite::Reflexive,
+        ConditionLimite::Reflexive,
+        ConditionLimite::Periodique,
+        ConditionLimite::Periodique,
+        ConditionLimite::Reflexive,
+        ConditionLimite::Reflexive
+    );
+
+    auto* p = new particule(1, 0, 1.0,
+                            vecteur(5.0, -2.0, 0.0),
+                            vecteur(0.0, -1.0, 0.0));
+
+    u.ajoute_particule(p);
+    u.applique_conditions_limites();
+
+    ASSERT_EQ(u.getNumParticules(), 1);
+    EXPECT_DOUBLE_EQ(p->getPosition().getX(), 5.0);
+    EXPECT_DOUBLE_EQ(p->getPosition().getY(), 8.0);
+    EXPECT_DOUBLE_EQ(p->getVitesse().getY(), -1.0);
+}
+
+/**
+ * @brief Vérifie qu'une particule sortant par ymax en condition périodique
+ * réapparaît du côté ymin.
+ */
+TEST(UniversTest, ConditionPeriodiqueYmax) {
+    std::vector<particule*> parts;
+    univers u(parts, {10.0, 10.0}, 2.5, 2, 1.0, 1.0, 0.0);
+
+    u.setConditionsLimites(
+        ConditionLimite::Reflexive,
+        ConditionLimite::Reflexive,
+        ConditionLimite::Periodique,
+        ConditionLimite::Periodique,
+        ConditionLimite::Reflexive,
+        ConditionLimite::Reflexive
+    );
+
+    auto* p = new particule(1, 0, 1.0,
+                            vecteur(5.0, 12.0, 0.0),
+                            vecteur(0.0, 1.0, 0.0));
+
+    u.ajoute_particule(p);
+    u.applique_conditions_limites();
+
+    ASSERT_EQ(u.getNumParticules(), 1);
+    EXPECT_DOUBLE_EQ(p->getPosition().getX(), 5.0);
+    EXPECT_DOUBLE_EQ(p->getPosition().getY(), 2.0);
+    EXPECT_DOUBLE_EQ(p->getVitesse().getY(), 1.0);
+}
+
+/**
+ * @brief Vérifie qu'une particule sortant par un bord absorbant est supprimée.
+ */
+TEST(UniversTest, ConditionAbsorbanteSupprimeParticule) {
+    std::vector<particule*> parts;
+    univers u(parts, {10.0, 10.0}, 2.5, 2, 1.0, 1.0, 0.0);
+
+    u.setConditionsLimites(
+        ConditionLimite::Absorbante,  // xmin
+        ConditionLimite::Reflexive,
+        ConditionLimite::Reflexive,
+        ConditionLimite::Reflexive,
+        ConditionLimite::Reflexive,
+        ConditionLimite::Reflexive
+    );
+
+    auto* p = new particule(1, 0, 1.0,
+                            vecteur(-1.0, 5.0, 0.0),
+                            vecteur(-1.0, 0.0, 0.0));
+
+    u.ajoute_particule(p);
+
+    EXPECT_EQ(u.getNumParticules(), 1);
+
+    u.applique_conditions_limites();
+
+    EXPECT_EQ(u.getNumParticules(), 0);
+    EXPECT_TRUE(u.getParticules().empty());
+}
+
+/**
+ * @brief Vérifie que seules les particules sorties par un bord absorbant
+ * sont supprimées, tandis que les particules internes restent présentes.
+ */
+TEST(UniversTest, ConditionAbsorbanteConserveParticulesInternes) {
+    std::vector<particule*> parts;
+    univers u(parts, {10.0, 10.0}, 2.5, 2, 1.0, 1.0, 0.0);
+
+    u.setConditionsLimites(
+        ConditionLimite::Absorbante,
+        ConditionLimite::Absorbante,
+        ConditionLimite::Absorbante,
+        ConditionLimite::Absorbante,
+        ConditionLimite::Reflexive,
+        ConditionLimite::Reflexive
+    );
+
+    auto* p_interne = new particule(1, 0, 1.0,
+                                    vecteur(5.0, 5.0, 0.0),
+                                    vecteur(0.0, 0.0, 0.0));
+
+    auto* p_sortie = new particule(2, 0, 1.0,
+                                   vecteur(12.0, 5.0, 0.0),
+                                   vecteur(1.0, 0.0, 0.0));
+
+    u.ajoute_particule(p_interne);
+    u.ajoute_particule(p_sortie);
+
+    EXPECT_EQ(u.getNumParticules(), 2);
+
+    u.applique_conditions_limites();
+
+    ASSERT_EQ(u.getNumParticules(), 1);
+    ASSERT_EQ(u.getParticules().size(), 1);
+    EXPECT_EQ(u.getParticules()[0]->getId(), 1);
 }

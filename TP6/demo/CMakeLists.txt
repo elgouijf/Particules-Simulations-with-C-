@@ -1,3 +1,7 @@
+# Simulation TP2 / système solaire
+add_executable(simu_tp2 simu_tp2.cxx)
+target_link_libraries(simu_tp2 particules)
+
 # Simulation principale
 add_executable(simu_tp4 simu_tp4.cxx)
 target_link_libraries(simu_tp4 particules)

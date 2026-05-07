@@ -1,46 +1,67 @@
 @startuml
+
 actor Utilisateur
-participant main
-participant univers
-participant particule
-participant cellule
-participant io
 
-Utilisateur -> main : lancer la simulation
-main -> univers : créer univers(Lds, r_cut, dim, eps, sigma)
+participant "main()" as Main
+participant "main_simulation()" as Sim
+participant "Univers" as U
+participant "Particule" as P
 
-loop pour chaque particule initiale
-  main -> univers : ajoute_particule(p)
-  univers -> cellule : place_particule_dans_cellule(p)
+Utilisateur -> Main : lancer programme
+
+Main -> Sim : main_simulation()
+
+Sim -> U : constructeur Univers(...)
+
+loop boucle temporelle
+
+    Sim -> U : evolue_particules(dt)
+
+    loop pour chaque particule
+        U -> P : avance_position_verlet(dt)
+        U -> P : verifie_etat_num()
+    end
+
+    U -> U : place_particules_dans_cellules()
+
+    U -> U : calcule_forces()
+
+    alt potentiel mur actif
+        U -> U : applique_potentiel_mur()
+    end
+
+    U -> U : applique_gravite()
+
+    loop pour chaque particule
+        U -> P : avance_vitesse_verlet(dt)
+        U -> P : verifie_etat_num()
+    end
+
+    U -> U : applique_conditions_limites()
+
+    alt frame limiteur
+        U -> U : limite_vitesses()
+    end
+
+    alt sauvegarde frame
+        Sim -> Sim : sauvegarde_frame_vtu()
+    end
+
 end
 
-main -> univers : calcule_forces()
-
-loop pour chaque pas de temps
-  main -> univers : evolue_particules(dt)
-
-  loop pour chaque particule
-    univers -> particule : avance_position_verlet(dt)
-  end
-
-  univers -> univers : place_particules_dans_cellules()
-
-  loop pour chaque cellule
-    univers -> cellule : vide()
-    univers -> cellule : ajoute_particule(...)
-  end
-
-  univers -> univers : calcule_forces()
-
-  loop pour chaque particule
-    univers -> particule : avance_vitesse_verlet(dt)
-  end
-
-  alt frame à sauvegarder
-    main -> io : sauvegarde_frame_txt(...) / sauvegarde_frame_vtk(...) / sauvegarde_frame_vtu(...)
-  end
+alt erreur numérique
+    U -> Main : throw ErreurNumerique
+    Main -> Main : catch ErreurNumerique
 end
 
-main -> io : ecrire_fichier_series_json(...)
-main --> Utilisateur : fin de simulation
+alt erreur paramètre
+    U -> Main : throw ParametreInvalide
+    Main -> Main : catch ParametreInvalide
+end
+
+alt erreur fichier
+    Sim -> Main : throw ErreurFichier
+    Main -> Main : catch ErreurFichier
+end
+
 @enduml

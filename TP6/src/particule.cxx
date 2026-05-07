@@ -1,6 +1,7 @@
 #include "particule.hxx"
-
+#include "exceptions.hxx"
 #include <iostream>
+#include <cmath>
 
 /**
  * @brief Construit une particule nulle.
@@ -110,6 +111,36 @@ void particule::ajouterForce(double fx, double fy, double fz) {
  */
 void particule::ajouterForce(const vecteur& f) {
     force.ajoute(f.getX(), f.getY(), f.getZ());
+}
+
+void particule::verifie_etat_num() const{
+     if (!std::isfinite(position.getX())) {
+        throw ErreurNumerique("Position x non finie pour la particule ID " + std::to_string(id));
+     }
+     if (!std::isfinite(position.getY())) {
+        throw ErreurNumerique("Position y non finie pour la particule ID " + std::to_string(id));
+     }
+     if (!std::isfinite(position.getZ())) {
+        throw ErreurNumerique("Position z non finie pour la particule ID " + std::to_string(id));
+     }
+    if (!std::isfinite(vitesse.getX())) {
+            throw ErreurNumerique("Vitesse x non finie pour la particule ID " + std::to_string(id));
+    } 
+    if (!std::isfinite(vitesse.getY())) {
+        throw ErreurNumerique("Vitesse y non finie pour la particule ID " + std::to_string(id));
+    }
+    if (!std::isfinite(vitesse.getZ())) {
+        throw ErreurNumerique("Vitesse z non finie pour la particule ID " + std::to_string(id));
+    }
+    if (!std::isfinite(force.getX())) {
+        throw ErreurNumerique("Force x non finie pour la particule ID " + std::to_string(id));
+    }
+    if (!std::isfinite(force.getY())) {
+        throw ErreurNumerique("Force y non finie pour la particule ID " + std::to_string(id));
+    }
+    if (!std::isfinite(force.getZ())) {
+        throw ErreurNumerique("Force z non finie pour la particule ID " + std::to_string(id));
+    }
 }
 
 /**

@@ -183,13 +183,14 @@ public:
      * @param fz Composante selon z.
      */
     void ajouterForce(double fx, double fy, double fz);
-
     /**
      * @brief Ajoute une force vectorielle.
      *
      * @param f Force à ajouter.
      */
     void ajouterForce(const vecteur& f);
+
+    void verifie_etat_num() const;
 };
 
 /**

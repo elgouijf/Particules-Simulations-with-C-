@@ -17,6 +17,7 @@
 #include "univers.hxx"
 #include "io.hxx"
 #include "output_paths.hxx"
+#include "exceptions.hxx"
 
 using namespace std;
 
@@ -33,14 +34,13 @@ ConditionLimite lire_condition(char c) {
 }
 
 
-int main() {
+int main_simulation() {
     std::string mode;
     std::cout << "Choisir le mode : (t = txt, v = vtk legacy, x = vtu xml) : ";
     std::cin >> mode;
 
     if (mode != "t" && mode != "v" && mode != "x") {
-        std::cerr << "Mode invalide. Choisir 't', 'v' ou 'x'.\n";
-        return EXIT_FAILURE;
+        throw ParametreInvalide("Mode invalide. Choisir 't', 'v' ou 'x'.");
     }
 
     // ==========================
@@ -65,6 +65,7 @@ int main() {
 
     double duration = 29.5;
     int num_frames = static_cast<int>(duration / dt);
+
 
     vecteur v_pave(0.0, 0.0, 0.0);
     vecteur v_boule(0.0, -10.0, 0.0);
@@ -189,9 +190,10 @@ int main() {
     std::ofstream energy_file(dossier_energy / "energie_tp6.csv"); // fichier d'énergie 
 
     if (!energy_file.is_open()) {
-        std::cerr << "Impossible d'ouvrir "
-                << dossier_energy / "energie_tp6.csv" << "\n";
-        return EXIT_FAILURE;
+        // std::cerr << "Impossible d'ouvrir "
+        //         << dossier_energy / "energie_tp6.csv" << "\n";
+        // return EXIT_FAILURE;
+        throw ErreurFichier("Impossible d'ouvrir " + (dossier_energy / "energie_tp6.csv").string());
     }
 
     ecrire_entete_energie(energy_file);
@@ -208,9 +210,10 @@ int main() {
         file.open(dossier_frames / "frames.txt");
 
         if (!file.is_open()) {
-            std::cerr << "Impossible d'ouvrir "
-                    << dossier_frames / "frames.txt" << "\n";
-            return EXIT_FAILURE;
+            // std::cerr << "Impossible d'ouvrir "
+            //         << dossier_frames / "frames.txt" << "\n";
+            // return EXIT_FAILURE;
+            throw ErreurFichier("Impossible d'ouvrir " + (dossier_frames / "frames.txt").string());
         }
     }
 
@@ -311,4 +314,19 @@ int main() {
     std::cout << "Fichier energie genere : "
             << (dossier_energy / "energie_tp6.csv") << "\n";
     return EXIT_SUCCESS;
+}
+
+int main(){
+    try{
+      return main_simulation();
+    } catch(const ParametreInvalide& p){
+        std::cerr << "Erreur de parametre : " << p.what() << "\n";
+        return EXIT_FAILURE;
+    } catch(const ErreurFichier& e){
+        std::cerr << "Erreur de fichier : " << e.what() << "\n";
+        return EXIT_FAILURE;
+    } catch(const ErreurNumerique& n){
+        std::cerr << "Erreur numerique : " << n.what() << "\n";
+        return EXIT_FAILURE;
+    }
 }
