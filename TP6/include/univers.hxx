@@ -124,9 +124,7 @@ class univers {
         void construire_liste_verlet();
         bool doit_reconstruire_liste_verlet() const;
 
-        void calcule_forces_verlet_omp();
-        void calcule_forces_verlet_omp_2d();
-        void calcule_forces_verlet_omp_3d();
+        
 
         
 
@@ -223,12 +221,10 @@ class univers {
 
         
         void calcule_forces_sequentiel();
-        void calcule_forces_sequentiel_2d();
-        void calcule_forces_sequentiel_3d();
-
+        void calcule_forces_omp();
+        void calcule_forces_verlet_omp();
         void calcule_forces();
-        void calcule_forces_omp_2d();
-        void calcule_forces_omp_3d();
+        
 
         
         /**

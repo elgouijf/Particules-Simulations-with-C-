@@ -203,8 +203,7 @@ int main(){
 
             std::cout << "Frame " << frame << "/" << num_frames
                     << "  Em = " << Em << "\n"; 
-            //std::cout << "Frame " << frame << "/" << num_frames <<  "\n"; 
-            
+            std::cout << "Frame " << frame << "/" << num_frames <<  "\n"; 
             
         } 
 

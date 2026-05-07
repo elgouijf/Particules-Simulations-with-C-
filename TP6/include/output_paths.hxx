@@ -11,7 +11,8 @@ enum class OutputType {
     FramesVTK3D,
     FramesVTU3D,
     Energy,
-    Plots
+    Plots,
+    Potentials
 };
 
 /** @brief Retourne le répertoire de sortie pour un type donné.

@@ -95,7 +95,7 @@ int main(){
     double epsilon = 5.0;
     double mass = 1.0;
     //double dt = 0.00005;
-    double dt = 0.001;
+    double dt = 0.0001;
     double rcut = 2.5 * sigma;
     int dim = 3;
     std::vector<double> Lds = {120.0, 120.0, 120.0}; // L1, L2 et L3
@@ -123,8 +123,8 @@ int main(){
     int N2y = 30; // nombre de particules selon y pour le pavé du bas
     int N2z = 10;  // nombre de particules selon z pour le pavé du bas
 
-    int N1 = N1x * N1y * N1z; // nombre de particules du cube
-    int N2 = N2x * N2y * N2z; // nombre de particules du pavé
+    //int N1 = N1x * N1y * N1z; // nombre de particules du cube
+    //int N2 = N2x * N2y * N2z; // nombre de particules du pavé
 
     // Création de l'univers vide (de la matière)
     univers uni(particules, Lds, rcut, dim, epsilon, sigma);
@@ -242,8 +242,11 @@ int main(){
         }
 
         std::cout << "Simulation 3D terminee.\n";
+        std::cout << "Frames texte generees dans :\n"
+                << "  " << (dossier_frames / "frames.txt") << "\n\n";
+
         std::cout << "Pour visualiser les frames 3D texte, lancez :\n"
-                  << "python3 src/python_plot/plot_collision_3d.py\n";
+                << "  python3 " << script_python << "\n";
     }
 
     if (mode == "v") {

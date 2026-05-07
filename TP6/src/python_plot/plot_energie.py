@@ -9,16 +9,16 @@ import pandas as pd
 
 
 def main():
-    # 🔹 Chemin du script
+    # Chemin du script
     script_dir = Path(__file__).resolve().parent
 
-    # 🔹 Racine du projet (2 niveaux au-dessus : src/python_plot → projet)
+    # Racine du projet (2 niveaux au-dessus : src/python_plot → projet)
     project_root = script_dir.parent.parent
 
-    # 🔹 Chemin par défaut
+    # Chemin par défaut
     default_path = project_root / "energy" / "energie_tp6.csv"
 
-    # 🔹 Argument utilisateur
+    # Argument utilisateur
     if len(sys.argv) >= 2:
         csv_path = Path(sys.argv[1])
     else:
@@ -26,18 +26,18 @@ def main():
         print(f"[INFO] Aucun fichier fourni.")
         print(f"[INFO] Utilisation du fichier par défaut : {csv_path}")
 
-    # 🔹 Vérification
+    # Vérification
     if not csv_path.exists():
         print(f"[ERREUR] Fichier introuvable : {csv_path}")
         return 1
 
     data = pd.read_csv(csv_path)
 
-    # 🔹 Dossier plots (à la racine du projet)
+    # Dossier plots (à la racine du projet)
     output_dir = project_root / "plots"
     output_dir.mkdir(exist_ok=True)
 
-    # 🔹 Plot
+    # Plot
     plt.figure()
     plt.plot(data["time"], data["Ec"], label="Ec")
     plt.plot(data["time"], data["Ep"], label="Ep")

@@ -32,7 +32,10 @@ std::filesystem::path get_output_dir(OutputType type) {
 
         case OutputType::Plots:
             return root / "plots";
-    }
+
+        case OutputType::Potentials:
+            return root / "potentials";
+            }
 
     throw std::invalid_argument("Type de sortie inconnu");
 }
