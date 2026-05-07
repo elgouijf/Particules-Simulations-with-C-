@@ -113,6 +113,15 @@ void particule::ajouterForce(const vecteur& f) {
     force.ajoute(f.getX(), f.getY(), f.getZ());
 }
 
+/**
+ * @brief Vérifie la validité numérique de l'état de la particule.
+ *
+ * Cette méthode s'assure que toutes les composantes des vecteurs position,
+ * vitesse et force sont des nombres finis.
+ *
+ * @throws ErreurNumerique si une composante de la position, de la vitesse
+ * ou de la force n'est pas finie.
+ */
 void particule::verifie_etat_num() const{
      if (!std::isfinite(position.getX())) {
         throw ErreurNumerique("Position x non finie pour la particule ID " + std::to_string(id));

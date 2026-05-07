@@ -7,8 +7,6 @@
 #include <iostream>
 #include "conditionLimite.hxx"
 
-
-
 /**
  * @class univers
  * @brief Représente l'ensemble du système physique simulé.
@@ -40,6 +38,9 @@ class univers {
          */
         double r_cut;
 
+        /**
+         * @brief Constante de gravitation ou intensité du champ externe.
+         */
         double G;
 
         /**
@@ -77,56 +78,131 @@ class univers {
          */
         double sigma;
 
-  
+        /**
+         * @brief Condition limite sur la face x minimale.
+         */
         ConditionLimite condl_xmin;
 
+        /**
+         * @brief Condition limite sur la face x maximale.
+         */
         ConditionLimite condl_xmax;
 
+        /**
+         * @brief Condition limite sur la face y minimale.
+         */
         ConditionLimite condl_ymin;
 
+        /**
+         * @brief Condition limite sur la face y maximale.
+         */
         ConditionLimite condl_ymax;
         
+        /**
+         * @brief Condition limite sur la face z minimale.
+         */
         ConditionLimite condl_zmin;
 
+        /**
+         * @brief Condition limite sur la face z maximale.
+         */
         ConditionLimite condl_zmax;
 
+        /**
+         * @brief Indique si le potentiel de mur est activé.
+         */
         bool utiliser_potentiel_mur;
 
-        /** @brief Vide toutes les particules de l'univers. */
+        /**
+         * @brief Vide toutes les particules de l'univers.
+         */
         void clear_particules();
 
-        /** @brief Copie les paramètres d'un autre univers. */
+        /**
+         * @brief Copie les paramètres d'un autre univers.
+         */
         void copier_parametres_depuis(const univers& other);
 
-        /** @brief Indique si aucune condition limite n'est appliquée. */
+        /**
+         * @brief Indique si aucune condition limite n'est appliquée.
+         */
         bool aucune_cond_limite = false;
 
+        /**
+         * @brief Tableau des composantes x des forces pour OpenMP.
+         */
         std::vector<double> omp_fx;
+
+        /**
+         * @brief Tableau des composantes y des forces pour OpenMP.
+         */
         std::vector<double> omp_fy;
+
+        /**
+         * @brief Tableau des composantes z des forces pour OpenMP.
+         */
         std::vector<double> omp_fz;
 
+        /**
+         * @brief Nombre de threads alloués pour les buffers OpenMP.
+         */
         int omp_threads_alloc = 0;
+
+        /**
+         * @brief Nombre de particules allouées dans les buffers OpenMP.
+         */
         int omp_particles_alloc = 0;
 
+        /**
+         * @brief Prépare les buffers de forces pour le calcul parallèle.
+         */
         void prepare_omp_force_buffers();
 
+        /**
+         * @brief Active ou non l'utilisation de la liste de Verlet.
+         */
         bool utiliser_liste_verlet = false;
+
+        /**
+         * @brief Indique si la liste de Verlet est valide.
+         */
         bool verlet_valide = false;
 
+        /**
+         * @brief Épaisseur de la zone tampon (skin) pour la liste de Verlet.
+         */
         double verlet_skin = 0.5;
 
+        /**
+         * @brief Liste des paires de particules candidates.
+         */
         std::vector<std::pair<int, int>> paires_verlet;
 
+        /**
+         * @brief Positions de référence en x pour la liste de Verlet.
+         */
         std::vector<double> verlet_x0;
+
+        /**
+         * @brief Positions de référence en y pour la liste de Verlet.
+         */
         std::vector<double> verlet_y0;
+
+        /**
+         * @brief Positions de référence en z pour la liste de Verlet.
+         */
         std::vector<double> verlet_z0;
 
+        /**
+         * @brief Construit la liste de Verlet.
+         */
         void construire_liste_verlet();
+
+        /**
+         * @brief Indique si la liste de Verlet doit être reconstruite.
+         * @return true si reconstruction nécessaire, false sinon.
+         */
         bool doit_reconstruire_liste_verlet() const;
-
-        
-
-        
 
     public:
         /**
@@ -154,8 +230,9 @@ class univers {
                 double eps,
                 double sigma);
         
-        
-        /** @brief Construit un univers paramétré avec un champ gravitationnel. */
+        /**
+         * @brief Construit un univers paramétré avec un champ gravitationnel.
+         */
         univers(std::vector<particule*>& v,
                 std::vector<double> Lds,
                 double r_cut,
@@ -164,7 +241,9 @@ class univers {
                 double sigma,
                 double G);
         
-        /** @brief Construit un univers paramétré avec un champ gravitationnel et potentiel de mur. */
+        /**
+         * @brief Construit un univers paramétré avec un champ gravitationnel et potentiel de mur.
+         */
         univers(std::vector<particule*>& v,
                 std::vector<double> Lds,
                 double r_cut,
@@ -182,9 +261,9 @@ class univers {
         ~univers();
 
         /**
-        * @brief Constructeur de copie.
-        * @param other L'objet à copier.
-        */
+         * @brief Constructeur de copie.
+         * @param other L'objet à copier.
+         */
         univers(const univers& other);
 
         /**
@@ -194,13 +273,13 @@ class univers {
          */
         univers& operator=(const univers& other);
 
-        /** 
+        /**
          * @brief Constructeur de déplacement.
          * @param other L'objet à déplacer.
          */
         univers(univers&& other) noexcept;
 
-        /** 
+        /**
          * @brief Opérateur d'affectation par déplacement.
          * @param other L'objet à déplacer.
          * @return Référence à l'objet déplacé.
@@ -219,14 +298,26 @@ class univers {
          */
         void evolue_particules(double dt);
 
-        
+        /**
+         * @brief Calcule les forces de manière séquentielle.
+         */
         void calcule_forces_sequentiel();
-        void calcule_forces_omp();
-        void calcule_forces_verlet_omp();
-        void calcule_forces();
-        
 
-        
+        /**
+         * @brief Calcule les forces en parallèle avec OpenMP.
+         */
+        void calcule_forces_omp();
+
+        /**
+         * @brief Calcule les forces avec liste de Verlet en parallèle.
+         */
+        void calcule_forces_verlet_omp();
+
+        /**
+         * @brief Sélectionne et lance la méthode de calcul des forces appropriée.
+         */
+        void calcule_forces();
+
         /**
          * @brief Vide toutes les cellules de l'univers.
          */
@@ -331,85 +422,95 @@ class univers {
         double energie_mecanique() const;
 
         /**
-        * @brief Modifie les conditions aux limites selon chaque direction.
-        * @param xmin Condition aux limites pour x_min.
-        * @param xmax Condition aux limites pour x_max.
-        * @param ymin Condition aux limites pour y_min.
-        * @param ymax Condition aux limites pour y_max.
-        * @param zmin Condition aux limites pour z_min.
-        * @param zmax Condition aux limites pour z_max.
-        */
+         * @brief Modifie les conditions aux limites selon chaque direction.
+         * @param xmin Condition aux limites pour x_min.
+         * @param xmax Condition aux limites pour x_max.
+         * @param ymin Condition aux limites pour y_min.
+         * @param ymax Condition aux limites pour y_max.
+         * @param zmin Condition aux limites pour z_min.
+         * @param zmax Condition aux limites pour z_max.
+         */
         void setConditionsLimites(ConditionLimite xmin, ConditionLimite xmax,
-                              ConditionLimite ymin, ConditionLimite ymax,
-                              ConditionLimite zmin, ConditionLimite zmax);
-
+                                 ConditionLimite ymin, ConditionLimite ymax,
+                                 ConditionLimite zmin, ConditionLimite zmax);
 
         /**
-        * @brief Applique les conditions aux limites à toutes les particules.
-        *
-        * @return true si au moins une particule a été modifiée ou supprimée,
-        *         false sinon.
-        */
+         * @brief Applique les conditions aux limites à toutes les particules.
+         *
+         * @return true si au moins une particule a été modifiée ou supprimée,
+         *         false sinon.
+         */
         bool applique_conditions_limites();
         
-        /** @brief Applique les conditions aux limites à une particule donnée.
+        /**
+         * @brief Applique les conditions aux limites à une particule donnée.
          * @param p Pointeur vers la particule.
          * @return true si la particule a été supprimée, false sinon.
-        */
+         */
         bool applique_conditions_limites_particule(particule* p);
 
-        /** @brief Calcule la force exercée par un mur sur une particule.
+        /**
+         * @brief Calcule la force exercée par un mur sur une particule.
          * @param r Distance entre la particule et le mur.
          * @return Force exercée.
          */
         double calcule_force_mur(double r) const;
         
-
-        /** @brief Limite les vitesses des particules.
+        /**
+         * @brief Limite les vitesses des particules.
          * @param N1 Index de la première particule.
          * @param N2 Index de la deuxième particule.
          */
-        void limite_vitesses(int N1,int N2);
+        void limite_vitesses(int N1, int N2);
 
-        /** @brief Active ou désactive l'utilisation du potentiel de mur.
+        /**
+         * @brief Active ou désactive l'utilisation du potentiel de mur.
          * @param actif true pour activer, false pour désactiver.
          */
         void setUtiliserPotentielMur(bool actif);
 
-        /** @brief Applique la gravité à toutes les particules.
+        /**
+         * @brief Applique la gravité à toutes les particules.
          */
         void applique_gravite();
 
-        /** @brief Applique le potentiel de mur à toutes les particules.
+        /**
+         * @brief Applique le potentiel de mur à toutes les particules.
          */
         void applique_potentiel_mur();
 
-        /** @brief Affiche les conditions aux limites.
+        /**
+         * @brief Affiche les conditions aux limites.
          */
         void afficherConditionsLimites() const;
 
+        /**
+         * @brief Affiche des informations de debug sur les cellules.
+         */
         void debug_cellules() const;
 
+        /**
+         * @brief Réserve de la mémoire pour les particules.
+         * @param n Nombre de particules à réserver.
+         */
         void reserveParticules(size_t n);
         
         /**
-        * @brief Active ou désactive la liste de Verlet.
-        *
-        * La liste de Verlet permet de réutiliser une liste de paires candidates
-        * entre plusieurs pas de temps. Elle peut améliorer les performances lorsque
-        * le pas de temps est suffisamment petit devant le déplacement typique des
-        * particules.
-        *
-        * @param actif true pour activer la liste de Verlet.
-        * @param skin Marge ajoutée à r_cut pour construire la liste.
-        *
-        * @warning L'utilisateur doit choisir un skin cohérent avec le pas de temps :
-        * si dt est trop grand ou si les vitesses sont trop élevées, la liste sera
-        * reconstruite très souvent et peut devenir moins performante.
-        */
+         * @brief Active ou désactive la liste de Verlet.
+         *
+         * La liste de Verlet permet de réutiliser une liste de paires candidates
+         * entre plusieurs pas de temps. Elle peut améliorer les performances lorsque
+         * le pas de temps est suffisamment petit devant le déplacement typique des
+         * particules.
+         *
+         * @param actif true pour activer la liste de Verlet.
+         * @param skin Marge ajoutée à r_cut pour construire la liste.
+         *
+         * @warning L'utilisateur doit choisir un skin cohérent avec le pas de temps :
+         * si dt est trop grand ou si les vitesses sont trop élevées, la liste sera
+         * reconstruite très souvent et peut devenir moins performante.
+         */
         void setUtiliserListeVerlet(bool actif, double skin = 0.5);
-
-        
 };
 
 /**

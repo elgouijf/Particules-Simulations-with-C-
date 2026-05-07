@@ -1,3 +1,14 @@
+/**
+ * @file simu_tp1.cxx
+ * @brief Simulation gravitationnelle du système solaire par algorithme de Störmer-Verlet.
+ *
+ * Ce programme :
+ * - effectue un benchmark d'insertion de particules dans std::list, std::set et std::vector,
+ * - initialise le système solaire (Soleil, Terre, Jupiter, Halley),
+ * - simule les trajectoires via un potentiel gravitationnel,
+ * - sauvegarde les positions dans un fichier texte pour visualisation Python.
+ */
+
 #include <string>
 #include <iostream>
 #include <set>
@@ -21,15 +32,63 @@ using std::set;
 using std::vector;
 using std::deque;
 
+/**
+ * @brief Comparateur pour ordonner les particules dans un std::set par identifiant croissant.
+ */
 struct ComparateurParticule {
+  /**
+   * @brief Opérateur de comparaison entre deux particules.
+   *
+   * @param[in] p1 Première particule.
+   * @param[in] p2 Deuxième particule.
+   * @return true si l'identifiant de p1 est strictement inférieur à celui de p2.
+   */
   bool operator()(const particule& p1, const particule& p2) const {
     return p1.getId() < p2.getId();
   }
 };
 
+/**
+ * @brief Calcule les forces gravitationnelles exercées sur chaque particule du système.
+ *
+ * La force appliquée sur la particule i est :
+ * F_i = sum_{j != i} m_i * m_j * r_ij / |r_ij|^3
+ *
+ * @param[out] F                Matrice des forces résultantes. F[i] = {Fx, Fy} pour la particule i.
+ * @param[in]  liste_particules Vecteur des particules du système.
+ * @throws ErreurNumerique Si une distance est nulle, infinie, ou si une force devient non finie.
+ */
 void calcul_force_F(vector<vector<double>>&,vector<particule>&);
+
+/**
+ * @brief Intègre les équations du mouvement par l'algorithme de Störmer-Verlet.
+ *
+ * À chaque pas de temps, positions et vitesses sont mises à jour.
+ * Les positions et types sont écrits dans le fichier de sortie à chaque itération.
+ *
+ * @param[in,out] liste_particules Vecteur des particules du système.
+ * @param[in]     delta_t          Pas de temps de l'intégration (strictement positif).
+ * @param[in]     t_end            Temps final de la simulation (strictement positif).
+ * @param[in,out] file             Flux de sortie pour l'enregistrement des trajectoires.
+ * @throws ParametreInvalide Si delta_t ou t_end sont négatifs ou nuls, ou si une masse est invalide.
+ * @throws ErreurNumerique   Si une position, vitesse ou énergie devient non finie.
+ */
 void algo_Stromer(vector<particule>& liste_particules,double delta_t,double t_end,std::ofstream& file);
 
+/**
+ * @brief Fonction principale de la simulation gravitationnelle.
+ *
+ * Étapes :
+ * - benchmark comparatif d'insertion dans std::list, std::set et std::vector,
+ * - initialisation du système solaire (Soleil, Terre, Jupiter, Halley),
+ * - intégration numérique via algo_Stromer,
+ * - écriture des trajectoires dans systeme_solaire.txt.
+ *
+ * @return 0 en cas de succès.
+ * @throws ParametreInvalide Si les paramètres de simulation sont invalides.
+ * @throws ErreurFichier     Si le fichier de sortie ne peut pas être ouvert.
+ * @throws ErreurNumerique   Si un calcul numérique diverge.
+ */
 int main_simulation() {
   std::random_device rd;
   list<particule> liste_particules;
@@ -312,6 +371,14 @@ void algo_Stromer(vector<particule>& liste_particules,double delta_t,double t_en
   }
 }
 
+/**
+ * @brief Point d'entrée du programme.
+ *
+ * Appelle main_simulation() et intercepte toutes les exceptions métier
+ * ainsi que les exceptions standard inattendues.
+ *
+ * @return 0 en cas de succès, EXIT_FAILURE en cas d'erreur.
+ */
 int main() {
   try {
     return main_simulation();

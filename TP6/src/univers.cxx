@@ -1050,9 +1050,6 @@ bool univers::applique_conditions_limites_particule(particule* p) {
     double Ly = (dim >= 2) ? Lds[1] : 0.0;
     double Lz = (dim == 3) ? Lds[2] : 0.0;
 
-    // =====================
-    // Bord xmin : x = 0
-    // =====================
     if (pos.getX() < 0.0) {
         if (condl_xmin == ConditionLimite::Reflexive) {
             if (!utiliser_potentiel_mur) {
@@ -1068,9 +1065,6 @@ bool univers::applique_conditions_limites_particule(particule* p) {
         }
     }
 
-    // =====================
-    // Bord xmax : x = Lx
-    // =====================
     if (pos.getX() > Lx) {
         if (condl_xmax == ConditionLimite::Reflexive) {
             if (!utiliser_potentiel_mur) {
@@ -1086,9 +1080,6 @@ bool univers::applique_conditions_limites_particule(particule* p) {
         }
     }
 
-    // =====================
-    // Bord ymin : y = 0
-    // =====================
     if (pos.getY() < 0.0) {
         if (condl_ymin == ConditionLimite::Reflexive) {
             if (!utiliser_potentiel_mur) {
@@ -1104,9 +1095,6 @@ bool univers::applique_conditions_limites_particule(particule* p) {
         }
     }
 
-    // =====================
-    // Bord ymax : y = Ly
-    // =====================
     if (pos.getY() > Ly) {
         if (condl_ymax == ConditionLimite::Reflexive) {
             if (!utiliser_potentiel_mur) {
@@ -1122,10 +1110,6 @@ bool univers::applique_conditions_limites_particule(particule* p) {
         }
     }
 
-    // =====================
-    // Bord zmin : z = 0
-    // seulement si dim == 3
-    // =====================
     if (dim == 3 && pos.getZ() < 0.0) {
         if (condl_zmin == ConditionLimite::Reflexive) {
             if (!utiliser_potentiel_mur) {
@@ -1141,10 +1125,7 @@ bool univers::applique_conditions_limites_particule(particule* p) {
         }
     }
 
-    // =====================
-    // Bord zmax : z = Lz
-    // seulement si dim == 3
-    // =====================
+
     if (dim == 3 && pos.getZ() > Lz) {
         if (condl_zmax == ConditionLimite::Reflexive) {
             if (!utiliser_potentiel_mur) {
@@ -1562,7 +1543,6 @@ void univers::applique_potentiel_mur() {
     const double r_cut_mur = 0.5 * std::pow(2.0, 1.0 / 6.0) * sigma;
     const double eps_pos   = 1e-6;
 
-    // Déterminer quelles faces ont un potentiel de mur actif dès le début pour éviter de faire des tests à l'intérieur de la boucle.
     const bool wall_ymin = (dim >= 2 && condl_ymin == ConditionLimite::Reflexive);
     const bool wall_ymax = (dim >= 2 && condl_ymax == ConditionLimite::Reflexive);
     const bool wall_xmin = (condl_xmin == ConditionLimite::Reflexive);

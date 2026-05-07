@@ -58,26 +58,11 @@ def main():
     ax.set_facecolor("black")
     fig.patch.set_facecolor("black")
 
-    noms = {
-        "0": "soleil",
-        "1": "terre",
-        "2": "jupiter",
-        "3": "haley"
-    }
+    noms = {"0": "soleil","1": "terre","2": "jupiter","3": "haley"}
 
-    couleurs = {
-        "0": "yellow",
-        "1": "deepskyblue",
-        "2": "orange",
-        "3": "white"
-    }
+    couleurs = {"0": "yellow","1": "deepskyblue","2": "orange","3": "white"}
 
-    tailles = {
-        "0": 120,
-        "1": 40,
-        "2": 80,
-        "3": 15
-    }
+    tailles = {"0": 120,"1": 40,"2": 80,"3": 15}
 
     trajectoires = {}
     points = {}

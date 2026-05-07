@@ -43,9 +43,7 @@ int main_simulation() {
         throw ParametreInvalide("Mode invalide. Choisir 't', 'v' ou 'x'.");
     }
 
-    // ==========================
-    // Paramètres TP6 Q6
-    // ==========================
+
     int frame_debut_limiteur = 6000;
     int periode_limiteur = 1000;          // appliquer tous les 1000 pas après ce début
     int periode_debug_energie = 1000;     
@@ -113,9 +111,7 @@ int main_simulation() {
     uni.afficherConditionsLimites();
     int id = 0;
 
-    // ==========================
-    // Pavé inférieur : N2 = 17227 = 161 * 107
-    // ==========================
+
     double largeur_pave_voulue = 200.0;
 
     int N2_cible = 17227;
@@ -143,9 +139,6 @@ int main_simulation() {
         }
     }
 
-    // ==========================
-    // Boule supérieure : N1 = 395
-    // ==========================
     int N1_cible = 395;
     int N1 = 0;
 
@@ -181,10 +174,7 @@ int main_simulation() {
     std::cout << "Particules pave  : " << N2 << "\n";
     std::cout << "Total            : " << uni.getNumParticules() << "\n";
 
-    // ==========================
-    // Fichiers de sortie
-    // ==========================
-    // Enérgies mécaniques
+
     std::filesystem::path dossier_energy = ensure_output_dir(OutputType::Energy);
 
     std::ofstream energy_file(dossier_energy / "energie_tp6.csv"); // fichier d'énergie 
