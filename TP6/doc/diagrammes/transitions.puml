@@ -1,38 +1,34 @@
 @startuml
 
-[*] --> Initialisation
+[*] --> Non_initialisee
 
-Initialisation --> Forces_initiales
-Forces_initiales --> Simulation
+Non_initialisee --> Initialisee : création univers + particules
 
-Simulation --> Mise_a_jour_positions
-Mise_a_jour_positions --> Verification_numerique
+Initialisee --> Cellules_initialisees : init cellules
+Cellules_initialisees --> Verlet_construit : construit_liste_verlet()
 
-Verification_numerique --> Reconstruction_grille
-Reconstruction_grille --> Calcul_forces
+Verlet_construit --> Forces_calculees : calcule_forces()
 
-Calcul_forces --> Potentiel_mur
-Potentiel_mur --> Gravite
-Gravite --> Mise_a_jour_vitesses
+Forces_calculees --> En_evolution : début boucle
 
-Mise_a_jour_vitesses --> Conditions_limites
-Conditions_limites --> Sauvegarde
+En_evolution --> Position_updatee : avance_position
+Position_updatee --> CL_appliquees : conditions limites
+CL_appliquees --> Cellules_maj : maj cellules
 
-Sauvegarde --> Simulation
+Cellules_maj --> Verlet_update : si besoin
+Cellules_maj --> Forces_calculees : sinon
 
-Simulation --> Limitation_vitesse : frame >= seuil
-Limitation_vitesse --> Simulation
+Verlet_update --> Forces_calculees
 
-Simulation --> Fin : dernière frame
+Forces_calculees --> Vitesse_updatee : avance_vitesse
 
-Initialisation --> ParametreInvalide
-Simulation --> ErreurNumerique
-Sauvegarde --> ErreurFichier
+Vitesse_updatee --> Frame_sauvegardee : si save
+Vitesse_updatee --> En_evolution : sinon
 
-ParametreInvalide --> [*]
-ErreurNumerique --> [*]
-ErreurFichier --> [*]
+Frame_sauvegardee --> En_evolution
 
-Fin --> [*]
+En_evolution --> Terminee : fin simulation
+
+Terminee --> [*]
 
 @enduml

@@ -1,32 +1,43 @@
 @startuml
-
 left to right direction
 
 actor Utilisateur
+actor ParaView
+actor Python
 
-usecase "Configurer\nla simulation" as UC1
-usecase "Choisir les\nconditions limites" as UC2
-usecase "Lancer la\nsimulation" as UC3
-usecase "Calculer les\nforces LJ" as UC4
-usecase "Appliquer la\ngravity" as UC5
-usecase "Appliquer le\npotentiel de mur" as UC6
-usecase "Limiter les\nvitesses" as UC7
-usecase "Exporter les\nframes VTU" as UC8
-usecase "Calculer les\nénergies" as UC9
-usecase "Détecter les\ninstabilités numériques" as UC10
-usecase "Gérer les\nerreurs" as UC11
+rectangle "Simulateur de particules" {
+
+usecase "Configurer simulation" as UC1
+usecase "Définir domaine\net paramètres physiques" as UC2
+usecase "Ajouter particules" as UC3
+usecase "Choisir conditions limites" as UC4
+usecase "Activer gravité" as UC5
+usecase "Lancer simulation" as UC6
+usecase "Calcul interactions (LJ)" as UC7
+usecase "Intégration temporelle\n(Verlet)" as UC8
+usecase "Optimiser (Verlet list\n+ cellules)" as UC9
+usecase "Sauvegarder résultats" as UC10
+usecase "Exporter données" as UC11
+usecase "Visualiser résultats" as UC12
+
+}
 
 Utilisateur --> UC1
-Utilisateur --> UC2
 Utilisateur --> UC3
-Utilisateur --> UC8
+Utilisateur --> UC4
+Utilisateur --> UC5
+Utilisateur --> UC6
+Utilisateur --> UC12
 
-UC3 .> UC4 : <<include>>
-UC3 .> UC5 : <<include>>
-UC3 .> UC6 : <<include>>
-UC3 .> UC7 : <<include>>
-UC3 .> UC9 : <<include>>
-UC3 .> UC10 : <<include>>
-UC3 .> UC11 : <<include>>
+UC6 .> UC2 : <<include>>
+UC6 .> UC7 : <<include>>
+UC6 .> UC8 : <<include>>
+UC6 .> UC9 : <<include>>
+UC6 .> UC10 : <<include>>
+
+UC10 .> UC11 : <<include>>
+
+ParaView --> UC12
+Python --> UC12
 
 @enduml

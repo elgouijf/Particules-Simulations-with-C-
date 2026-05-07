@@ -1,67 +1,48 @@
 @startuml
 
 actor Utilisateur
+participant main
+participant Univers
+participant Particule
+participant IO
 
-participant "main()" as Main
-participant "main_simulation()" as Sim
-participant "Univers" as U
-participant "Particule" as P
+Utilisateur -> main : lancer simulation
 
-Utilisateur -> Main : lancer programme
+main -> Univers : créer univers(...)
 
-Main -> Sim : main_simulation()
+loop initialisation
+main -> Univers : ajoute_particule(p)
+end
 
-Sim -> U : constructeur Univers(...)
+main -> Univers : initialiser_cellules()
+main -> Univers : construit_liste_verlet()
+main -> Univers : calcule_forces()
 
-loop boucle temporelle
+loop chaque pas de temps
 
-    Sim -> U : evolue_particules(dt)
+main -> Univers : evolue(dt)
 
-    loop pour chaque particule
-        U -> P : avance_position_verlet(dt)
-        U -> P : verifie_etat_num()
-    end
+Univers -> Particule : avance_position_verlet(dt)
 
-    U -> U : place_particules_dans_cellules()
+Univers -> Univers : applique_conditions_limites()
+Univers -> Univers : place_particules_dans_cellules()
 
-    U -> U : calcule_forces()
+alt mise à jour Verlet
+Univers -> Univers : construit_liste_verlet()
+end
 
-    alt potentiel mur actif
-        U -> U : applique_potentiel_mur()
-    end
+Univers -> Univers : calcule_forces()
+Univers -> Univers : applique_gravite()
 
-    U -> U : applique_gravite()
+Univers -> Particule : avance_vitesse_verlet(dt)
 
-    loop pour chaque particule
-        U -> P : avance_vitesse_verlet(dt)
-        U -> P : verifie_etat_num()
-    end
-
-    U -> U : applique_conditions_limites()
-
-    alt frame limiteur
-        U -> U : limite_vitesses()
-    end
-
-    alt sauvegarde frame
-        Sim -> Sim : sauvegarde_frame_vtu()
-    end
+alt sauvegarde
+main -> IO : sauvegarde(...)
+end
 
 end
 
-alt erreur numérique
-    U -> Main : throw ErreurNumerique
-    Main -> Main : catch ErreurNumerique
-end
-
-alt erreur paramètre
-    U -> Main : throw ParametreInvalide
-    Main -> Main : catch ParametreInvalide
-end
-
-alt erreur fichier
-    Sim -> Main : throw ErreurFichier
-    Main -> Main : catch ErreurFichier
-end
+main -> IO : ecrire_series()
+main --> Utilisateur : fin
 
 @enduml
